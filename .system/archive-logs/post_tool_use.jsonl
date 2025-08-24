@@ -1,0 +1,84 @@
+{
+  "ts": "2025-08-24T11:45:56.139Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PostToolUse",
+  "tool": "Bash",
+  "details": "cmd: mv active .vault/ && mv exploration .vault/ && mv dev .vault/ && mv prod .vault/ && mv logs .system/",
+  "project": "AIPortfolio",
+  "success": true,
+  "duration_ms": null,
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "response_type": null,
+  "num_files": null,
+  "truncated": false,
+  "error_msg": null,
+  "response_file": null,
+  "response_filenames": null,
+  "tool_input": {
+    "command": "mv active .vault/ && mv exploration .vault/ && mv dev .vault/ && mv prod .vault/ && mv logs .system/",
+    "description": "Move remaining project directories"
+  },
+  "tool_response": {
+    "stdout": "",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  }
+}
+{
+  "ts": "2025-08-24T11:46:00.272Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PostToolUse",
+  "tool": "Bash",
+  "details": "cmd: ls",
+  "project": "AIPortfolio",
+  "success": true,
+  "duration_ms": null,
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "response_type": null,
+  "num_files": null,
+  "truncated": false,
+  "error_msg": null,
+  "response_file": null,
+  "response_filenames": null,
+  "tool_input": {
+    "command": "ls",
+    "description": "Check final clean directory"
+  },
+  "tool_response": {
+    "stdout": "CLAUDE.md\ncli\nlogs\nnode_modules\npackage.json\npackage.json.backup\npackage-lock.json\nREADME.md",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  }
+}
+{
+  "ts": "2025-08-24T11:46:13.199Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PostToolUse",
+  "tool": "Bash",
+  "details": "cmd: ls",
+  "project": "AIPortfolio",
+  "success": true,
+  "duration_ms": null,
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "response_type": null,
+  "num_files": null,
+  "truncated": false,
+  "error_msg": null,
+  "response_file": null,
+  "response_filenames": null,
+  "tool_input": {
+    "command": "ls",
+    "description": "Check current state"
+  },
+  "tool_response": {
+    "stdout": "CLAUDE.md\ncli\nlogs\npackage.json.backup\nREADME.md",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  }
+}

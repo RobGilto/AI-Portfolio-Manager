@@ -1,0 +1,107 @@
+# CLAUDE.md - AI Development Guidelines
+
+## 📁 Project Organization
+
+**File Structure Rules:**
+- `CLAUDE.md` stays in project root (only .md file allowed here)
+- All other `.md` files must be organized in appropriate folders within `docs/`
+- Frontend code belongs in `src/frontend/`
+- Backend code belongs in `src/backend/`
+- Shared utilities belong in `src/shared/`
+
+**Documentation Organization:**
+```
+docs/
+├── api/
+│   ├── endpoints.md
+│   └── authentication.md
+├── architecture/
+│   ├── system-design.md
+│   └── database-schema.md
+├── deployment/
+│   ├── staging.md
+│   └── production.md
+├── development/
+│   ├── setup.md
+│   └── testing.md
+└── user/
+    ├── user-guide.md
+    └── troubleshooting.md
+```
+
+**Documentation References:**
+Use `@folder/filename` to reference other documentation:
+- `@api/endpoints.md` - API documentation and endpoints
+- `@architecture/system-design.md` - System design and structure
+- `@deployment/production.md` - Production deployment guide
+- `@development/testing.md` - Testing strategies and guidelines
+
+## 🤖 Working with AI
+
+### Effective Requests
+- **Be specific** about file paths and folder structure
+- **Provide context** about existing code and architecture
+- **Ask for organized code** - specify target folders
+- **Request documentation** alongside implementation
+- **Reference docs** using `@filename` when asking for related changes
+
+### Good Prompt Examples
+```
+"Create a user authentication component in src/frontend/components/ following @api/authentication.md"
+"Add error handling to the API in src/backend/services/ per @architecture/system-design.md guidelines"
+"Review this code for best practices and update @development/testing.md if needed"
+"Implement the payment flow described in @api/endpoints.md"
+"Create deployment documentation in docs/deployment/staging.md"
+```
+
+## 💡 Core Principles
+
+### Code Quality
+- **Single Responsibility**: One function, one purpose
+- **Consistent Naming**: Clear, descriptive variable and function names
+- **Error Handling**: Always handle edge cases and failures
+- **Documentation**: Comment complex logic, document APIs
+
+### Organization
+- **Separation of Concerns**: Keep business logic separate from presentation
+- **Modular Design**: Break large components into smaller, reusable pieces
+- **Clear Dependencies**: Minimize coupling between modules
+- **Logical Grouping**: Related files should be in the same folder
+
+### Best Practices
+- **Test Early**: Write tests alongside features
+- **Iterate Small**: Make incremental, reviewable changes
+- **Review Often**: Ask AI to review code for improvements
+- **Document Decisions**: Explain why, not just what
+
+## 🔄 Development Workflow
+
+1. **Plan** → Discuss structure and approach (reference @architecture/system-design.md)
+2. **Implement** → Request organized, tested code (follow @development/testing.md)
+3. **Review** → Ask for optimization and security checks
+4. **Document** → Update relevant docs in appropriate `docs/` subfolders using `@folder/filename` references
+
+## 📚 Documentation Standards
+
+- **Organize by category** in appropriate `docs/` subfolders
+- **Cross-reference** related docs using `@folder/filename`
+- **Keep docs updated** when making code changes
+- **Link implementations** to their documentation
+- **Use consistent** `@` references across all files
+
+Example: "This component implements the auth flow described in @api/authentication.md"
+
+## 🚫 Common Pitfalls
+
+- Putting `.md` files in project root (only CLAUDE.md belongs there)
+- Not organizing docs into appropriate `docs/` subfolders
+- Dumping code in wrong folders
+- Missing error handling
+- Overly complex solutions
+- Undocumented business logic
+- Inconsistent code style
+- Forgetting to update related documentation
+
+---
+
+**Remember**: Good code is clean, organized, and maintainable. When in doubt, ask AI to explain the reasoning behind suggestions.

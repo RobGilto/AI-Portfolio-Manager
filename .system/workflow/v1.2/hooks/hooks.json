@@ -1,0 +1,42 @@
+{
+  "version": "1.2",
+  "enabled": true,
+  "hooks": {
+    "feature-completion": {
+      "enabled": true,
+      "script": "./feature-completion-hook.js",
+      "trigger": "post-feature-implementation",
+      "projects": "all",
+      "timeout": 300000
+    },
+    "health-check": {
+      "enabled": true,
+      "script": "./health-check-hook.js",
+      "trigger": "scheduled",
+      "schedule": "0 */2 * * *",
+      "projects": "all",
+      "timeout": 60000
+    },
+    "documentation-sync": {
+      "enabled": true,
+      "script": "./documentation-sync-hook.js",
+      "trigger": "post-code-change",
+      "projects": "all",
+      "timeout": 120000
+    }
+  },
+  "projects": {
+    "active/*": {
+      "enabled": true,
+      "customHooks": []
+    },
+    "exploration/*": {
+      "enabled": true,
+      "customHooks": []
+    },
+    "dev/*": {
+      "enabled": true,
+      "customHooks": []
+    }
+  }
+}

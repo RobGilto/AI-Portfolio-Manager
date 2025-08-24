@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# PURPOSE: Run health checks across all portfolio projects
+# SCOPE: Global health monitoring command
+# USAGE: ./scripts/health-check-all
+
+PORTFOLIO_ROOT="/home/robert/AIPortfolio"
+HOOKS_DIR="$PORTFOLIO_ROOT/workflow/v1.2/hooks"
+
+echo "🏥 Running health checks across all portfolio projects..."
+
+node "$HOOKS_DIR/hook-manager.js" health-check-all

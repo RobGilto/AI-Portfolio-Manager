@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# PURPOSE: GitHub Actions Claude Code integration setup for projects
+
+echo "🤖 Claude Code GitHub Actions Setup"
+echo "==================================="
+echo ""
+
+# Check if we're in a project directory
+if [[ ! -f "package.json" && ! -f "pyproject.toml" ]]; then
+    echo "❌ Error: No project detected (no package.json or pyproject.toml found)"
+    echo "   Run this command from within a project directory"
+    exit 1
+fi
+
+# Get project name from current directory or package.json
+if [ -f "package.json" ]; then
+    PROJECT_NAME=$(node -p "require('./package.json').name" 2>/dev/null || basename "$(pwd)")
+else
+    PROJECT_NAME=$(basename "$(pwd)")
+fi
+
+# Detect project type
+PROJECT_TYPE="unknown"
+if [ -f "package.json" ]; then
+    if grep -q "ink" package.json; then
+        PROJECT_TYPE="cli"
+    elif grep -q "next" package.json; then
+        PROJECT_TYPE="fullstack"
+    elif grep -q "vite" package.json; then
+        PROJECT_TYPE="frontend"
+    elif grep -q "express" package.json; then
+        PROJECT_TYPE="backend"
+    fi
+elif [ -f "pyproject.toml" ]; then
+    if grep -q "fastapi" pyproject.toml; then
+        PROJECT_TYPE="ai-python"
+    elif grep -q "langchain" pyproject.toml; then
+        PROJECT_TYPE="ai-langchain"
+    fi
+fi
+
+echo "📋 Project: $PROJECT_NAME"
+echo "🏷️  Type: $PROJECT_TYPE"
+echo "📍 Directory: $(pwd)"
+echo ""
+
+# Generate the GitHub Actions Claude prompt
+GITHUB_PROMPT="# Claude Code GitHub Actions Setup
+
+> Setting up AI-powered GitHub Actions for: $PROJECT_NAME ($PROJECT_TYPE)
+
+Claude Code GitHub Actions brings AI-powered automation to your GitHub workflow. With a simple \`@claude\` mention in any PR or issue, Claude can analyze your code, create pull requests, implement features, and fix bugs - all while following your project's standards.
+
+## Quick Setup Instructions
+
+The easiest way to set up this action is through Claude Code in the terminal:
+
+1. **Open Claude Code terminal and run:** \`/install-github-app\`
+   - This will guide you through setting up the GitHub app and required secrets
+   - You must be a repository admin to install the GitHub app
+
+2. **Manual Setup (if quick setup fails):**
+   - Install the Claude GitHub app: https://github.com/apps/claude
+   - Add ANTHROPIC_API_KEY to your repository secrets
+   - Copy workflow file from: https://github.com/anthropics/claude-code-action/blob/main/examples/claude.yml
+
+3. **Test the setup:**
+   - Tag \`@claude\` in an issue or PR comment
+   - Example: \`@claude implement user authentication for this project\`
+
+## Project-Specific Configuration
+
+### For $PROJECT_TYPE projects:
+- Claude will understand your project structure and dependencies
+- Follows your CLAUDE.md guidelines (if present)
+- Respects your existing code patterns and style
+
+### Common Use Cases:
+- **Turn issues into PRs:** \`@claude implement this feature based on the issue description\`
+- **Get implementation help:** \`@claude how should I implement user authentication?\`
+- **Fix bugs quickly:** \`@claude fix the TypeError in the dashboard component\`
+
+## Security & Best Practices
+
+⚠️ **NEVER commit API keys to your repository!**
+
+✅ **Always use GitHub Secrets:**
+- Add ANTHROPIC_API_KEY as repository secret
+- Reference as: \`\${{ secrets.ANTHROPIC_API_KEY }}\`
+
+✅ **Configure CLAUDE.md:**
+Create a CLAUDE.md file in repository root with:
+- Code style guidelines
+- Review criteria
+- Project-specific rules
+- Preferred patterns
+
+## Cost Optimization
+
+**GitHub Actions costs:**
+- Runs on GitHub-hosted runners (consumes Action minutes)
+- See GitHub's billing documentation for pricing
+
+**API costs:**
+- Token usage varies by task complexity and codebase size
+- Use specific commands to reduce unnecessary API calls
+- Set appropriate max_turns and timeout limits
+
+Initialize $PROJECT_TYPE project: $PROJECT_NAME with Claude Code GitHub Actions integration."
+
+echo "🚀 Initiating GitHub Actions setup with Claude prompt..."
+
+if command -v claude >/dev/null 2>&1; then
+    echo "✅ Running Claude prompt injection from project directory: $(pwd)"
+    echo ""
+    # Run claude command from the current project directory
+    claude --dangerously-skip-permissions -p "$GITHUB_PROMPT"
+    echo ""
+    echo "✅ GitHub Actions setup prompt sent to Claude!"
+    echo ""
+    echo "📋 Next Steps:"
+    echo "1. Follow Claude's guidance to set up GitHub Actions"
+    echo "2. Test with: @claude in an issue or PR comment"
+    echo "3. Consider creating CLAUDE.md for project-specific guidelines"
+else
+    echo "⚠️  claude command not found. Cannot inject GitHub Actions prompt."
+    echo "   Install claude command to enable GitHub Actions integration."
+    echo ""
+    echo "📋 Manual Setup Instructions:"
+    echo "1. Run: /install-github-app (in Claude Code terminal)"
+    echo "2. Or visit: https://github.com/apps/claude"
+    echo "3. Add ANTHROPIC_API_KEY to repository secrets"
+    echo "4. Copy workflow from: https://github.com/anthropics/claude-code-action"
+fi
+
+echo ""
+echo "📚 For more information:"
+echo "   https://docs.anthropic.com/en/docs/claude-code/github-actions"

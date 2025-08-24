@@ -1,0 +1,151 @@
+name: Claude Documentation Sync
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'package.json'
+      - 'learning/**'
+      - 'CLAUDE.md'
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday 9AM UTC
+  workflow_dispatch:      # Manual trigger
+
+jobs:
+  sync-documentation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get full history for better analysis
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install -g @anthropic/claude-code
+    
+    - name: Run project health check
+      run: |
+        if [ -f "package.json" ] && npm run check:health --if-present; then
+          echo "Health check completed"
+        else
+          echo "No health check available, skipping"
+        fi
+    
+    - name: Analyze codebase with Claude Code
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        # Run Claude Code analysis for CLAUDE.md updates
+        claude-code --prompt-file .claude/prompts/update-claude-md.md \
+                   --config .claude/config.json \
+                   --output-file CLAUDE.md.updated
+        
+        # Run architecture analysis
+        claude-code --prompt-file .claude/prompts/architecture-review.md \
+                   --config .claude/config.json \
+                   --output-file architecture-analysis.md
+    
+    - name: Check for CLAUDE.md changes
+      id: claude-changes
+      run: |
+        if [ -f "CLAUDE.md.updated" ]; then
+          if ! diff -q CLAUDE.md CLAUDE.md.updated > /dev/null 2>&1; then
+            echo "claude_changes=true" >> $GITHUB_OUTPUT
+            mv CLAUDE.md.updated CLAUDE.md
+          else
+            echo "claude_changes=false" >> $GITHUB_OUTPUT
+            rm -f CLAUDE.md.updated
+          fi
+        else
+          echo "claude_changes=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Update learning files
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        # Update patterns and victories based on recent changes
+        if [ -d "learning" ]; then
+          claude-code --prompt-file .claude/prompts/update-patterns.md \
+                     --config .claude/config.json \
+                     --output-file learning/PATTERNS.md.new
+          
+          if [ -f "learning/PATTERNS.md.new" ] && ! diff -q learning/PATTERNS.md learning/PATTERNS.md.new > /dev/null 2>&1; then
+            mv learning/PATTERNS.md.new learning/PATTERNS.md
+            echo "patterns_updated=true" >> $GITHUB_OUTPUT
+          else
+            rm -f learning/PATTERNS.md.new
+            echo "patterns_updated=false" >> $GITHUB_OUTPUT
+          fi
+        fi
+    
+    - name: Create Pull Request
+      if: steps.claude-changes.outputs.claude_changes == 'true' || steps.claude-changes.outputs.patterns_updated == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          docs: Auto-update documentation based on codebase analysis
+          
+          - CLAUDE.md synchronized with current project state
+          - Learning patterns updated based on recent changes
+          - Architecture analysis completed
+        title: '🤖 Automated Documentation Sync'
+        body: |
+          ## 🤖 Automated Documentation Update
+          
+          Claude Code has analyzed the current codebase and suggests updates to maintain documentation accuracy.
+          
+          ### 📋 Analysis Summary
+          
+          **CLAUDE.md Changes:** ${{ steps.claude-changes.outputs.claude_changes == 'true' && '✅ Updated' || '⏸️ No changes needed' }}
+          **Pattern Learning:** ${{ steps.claude-changes.outputs.patterns_updated == 'true' && '✅ New patterns identified' || '⏸️ No new patterns' }}
+          
+          ### 🔍 What was analyzed:
+          - File structure compliance with guidelines
+          - Size monitoring rules vs actual file sizes
+          - New patterns or anti-patterns in the codebase
+          - Scope adherence and potential drift
+          - Learning opportunities from recent commits
+          
+          ### 🎯 Recommended Actions:
+          1. Review the updated CLAUDE.md for accuracy
+          2. Check architecture-analysis.md for insights
+          3. Verify learning patterns align with project experience
+          4. Merge if changes look appropriate
+          
+          ### 📊 Current Project Health:
+          - Files analyzed: $(find src -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" | wc -l)
+          - Largest file size: $(find src -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -exec wc -l {} + 2>/dev/null | sort -nr | head -1 | awk '{print $1}' || echo "N/A") lines
+          
+          *This PR was generated automatically. Please review carefully before merging.*
+        branch: claude-sync-${{ github.run_number }}
+        delete-branch: true
+        labels: |
+          documentation
+          automated
+          claude-sync
+    
+    - name: Archive analysis artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: claude-analysis-${{ github.run_number }}
+        path: |
+          architecture-analysis.md
+          *.log
+        retention-days: 30

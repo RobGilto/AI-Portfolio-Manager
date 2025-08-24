@@ -1,0 +1,42 @@
+[{
+  "timestamp": "2025-08-24T11:45:56.115Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "conversation_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "tool": "Bash",
+  "command": "mv active .vault/ && mv exploration .vault/ && mv dev .vault/ && mv prod .vault/ && mv logs .system/",
+  "description": "Move remaining project directories",
+  "cwd": "/home/robert/AIPortfolio",
+  "project_name": "AIPortfolio",
+  "success": true,
+  "stdout": "",
+  "stderr": "",
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl"
+},
+{
+  "timestamp": "2025-08-24T11:46:00.249Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "conversation_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "tool": "Bash",
+  "command": "ls",
+  "description": "Check final clean directory",
+  "cwd": "/home/robert/AIPortfolio",
+  "project_name": "AIPortfolio",
+  "success": true,
+  "stdout": "CLAUDE.md\ncli\nlogs\nnode_modules\npackage.json\npackage.json.backup\npackage-lock.json\nREADME.md",
+  "stderr": "",
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl"
+},
+{
+  "timestamp": "2025-08-24T11:46:13.177Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "conversation_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "tool": "Bash",
+  "command": "ls",
+  "description": "Check current state",
+  "cwd": "/home/robert/AIPortfolio",
+  "project_name": "AIPortfolio",
+  "success": true,
+  "stdout": "CLAUDE.md\ncli\nlogs\npackage.json.backup\nREADME.md",
+  "stderr": "",
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl"
+}]

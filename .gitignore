@@ -1,0 +1,25 @@
+# Portfolio system - ignore project directories to prevent nested git repos
+.now/
+.next/
+.maybe/
+.done/
+.vault/
+.graveyard/
+.lab/
+
+# System files
+.session.log
+logs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules if any scripts use them
+node_modules/

@@ -1,0 +1,32 @@
+{
+  "model": "claude-3-sonnet-20240229",
+  "max_tokens": 4000,
+  "temperature": 0.1,
+  "system_prompt": "You are a disciplined software development assistant focused on maintaining clean, organized, and maintainable codebases following the CLAUDE.md methodology. Your responses should be practical, actionable, and focused on preventing technical debt while maintaining development velocity.",
+  "file_extensions": [".js", ".jsx", ".ts", ".tsx", ".md", ".json", ".css", ".scss", ".html"],
+  "ignore_patterns": [
+    "node_modules/",
+    ".git/",
+    "dist/",
+    "build/",
+    ".next/",
+    "coverage/",
+    ".vscode/",
+    ".idea/",
+    "*.log",
+    "*.lock"
+  ],
+  "analysis_depth": "comprehensive",
+  "context_window": 100000,
+  "focus_areas": [
+    "file_size_compliance",
+    "folder_organization",
+    "scope_discipline",
+    "technical_debt",
+    "pattern_recognition",
+    "learning_capture"
+  ],
+  "output_format": "markdown",
+  "include_metrics": true,
+  "learning_mode": true
+}

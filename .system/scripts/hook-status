@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# PURPOSE: Show status of hook system across portfolio
+# SCOPE: Global hook system monitoring
+# USAGE: ./scripts/hook-status
+
+PORTFOLIO_ROOT="/home/robert/AIPortfolio"
+HOOKS_DIR="$PORTFOLIO_ROOT/workflow/v1.2/hooks"
+
+echo "🔗 AIPortfolio Hook System Status"
+echo "================================="
+
+node "$HOOKS_DIR/hook-manager.js" status

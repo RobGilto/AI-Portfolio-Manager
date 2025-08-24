@@ -1,0 +1,56 @@
+{
+  "ts": "2025-08-24T11:46:34.077Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PostToolUse",
+  "tool": "Bash",
+  "details": "cmd: rm -rf logs",
+  "project": "AIPortfolio",
+  "success": true,
+  "duration_ms": null,
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "response_type": null,
+  "num_files": null,
+  "truncated": false,
+  "error_msg": null,
+  "response_file": null,
+  "response_filenames": null,
+  "tool_input": {
+    "command": "rm -rf logs",
+    "description": "Force remove logs"
+  },
+  "tool_response": {
+    "stdout": "",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  }
+}
+{
+  "ts": "2025-08-24T11:46:38.534Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PostToolUse",
+  "tool": "Bash",
+  "details": "cmd: ls -la",
+  "project": "AIPortfolio",
+  "success": true,
+  "duration_ms": null,
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "response_type": null,
+  "num_files": null,
+  "truncated": false,
+  "error_msg": null,
+  "response_file": null,
+  "response_filenames": null,
+  "tool_input": {
+    "command": "ls -la",
+    "description": "Check all files including hidden"
+  },
+  "tool_response": {
+    "stdout": "total 68\ndrwxr-xr-x 11 robert robert 4096 Aug 24 21:46 .\ndrwx--x--x 98 robert robert 4096 Aug 24 21:35 ..\ndrwxrwxr-x  3 robert robert 4096 Aug 24 21:44 .claude\n-rw-rw-r--  1 robert robert 4363 Aug 19 11:41 CLAUDE.md\n-rwxrwxr-x  1 robert robert 9342 Aug 24 21:44 cli\ndrwxrwxr-x  2 robert robert 4096 Aug 24 21:42 .done\ndrwxrwxr-x  7 robert robert 4096 Aug 24 21:46 .git\ndrwxrwxr-x  2 robert robert 4096 Aug 24 21:46 logs\ndrwxrwxr-x  2 robert robert 4096 Aug 24 21:42 .maybe\ndrwxrwxr-x  5 robert robert 4096 Aug 24 21:45 .next\ndrwxrwxr-x  3 robert robert 4096 Aug 24 21:44 .now\n-rw-rw-r--  1 robert robert  127 Aug 21 14:57 .session.log\ndrwxrwxr-x  8 robert robert 4096 Aug 24 21:46 .system\ndrwxrwxr-x  9 robert robert 4096 Aug 24 21:45 .vault",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  }
+}

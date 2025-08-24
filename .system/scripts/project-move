@@ -1,0 +1,146 @@
+#!/bin/bash
+
+# PURPOSE: Move project between lifecycle stages
+
+echo "📁 Project Lifecycle Manager"
+echo "=============================="
+
+# Function to list projects in a directory
+list_projects() {
+    local dir="$1"
+    local base_dir="$(dirname "$0")/.."
+    
+    if [ -d "$base_dir/$dir" ]; then
+        echo "Available projects in $dir/:"
+        find "$base_dir/$dir" -maxdepth 1 -type d ! -path "$base_dir/$dir" -exec basename {} \; | sort
+    else
+        echo "No projects found in $dir/"
+    fi
+}
+
+# Function to assess project readiness
+assess_readiness() {
+    local project_path="$1"
+    echo ""
+    echo "🔍 Assessing project readiness..."
+    
+    # Check for package.json
+    if [ -f "$project_path/package.json" ]; then
+        echo "✅ package.json found"
+    else
+        echo "⚠️  No package.json found"
+    fi
+    
+    # Check for README
+    if [ -f "$project_path/README.md" ]; then
+        echo "✅ README.md found"
+    else
+        echo "⚠️  No README.md found"
+    fi
+    
+    # Check for health check script
+    if grep -q "check:health" "$project_path/package.json" 2>/dev/null; then
+        echo "✅ Health check script configured"
+    else
+        echo "⚠️  No health check script found"
+    fi
+    
+    echo ""
+}
+
+# Get base directory
+BASE_DIR="$(dirname "$0")/.."
+
+echo "Current project structure:"
+echo ""
+echo "EXPLORATION (proof of concepts):"
+list_projects "exploration"
+echo ""
+echo "ACTIVE (current development):"
+list_projects "active"
+echo ""
+echo "PAUSED (temporarily on hold):"
+list_projects "paused"
+echo ""
+echo "SHIPPED (production ready):"
+list_projects "shipped"
+echo ""
+
+# Get source directory
+echo -n "From which stage? (exploration/active/paused/shipped): "
+read -r FROM_STAGE
+
+if [ ! -d "$BASE_DIR/$FROM_STAGE" ]; then
+    echo "❌ Error: Invalid source stage '$FROM_STAGE'"
+    exit 1
+fi
+
+# Get project name
+echo -n "Project name: "
+read -r PROJECT_NAME
+
+if [ ! -d "$BASE_DIR/$FROM_STAGE/$PROJECT_NAME" ]; then
+    echo "❌ Error: Project '$PROJECT_NAME' not found in $FROM_STAGE/"
+    exit 1
+fi
+
+# Assess current project
+assess_readiness "$BASE_DIR/$FROM_STAGE/$PROJECT_NAME"
+
+# Get destination directory
+echo -n "To which stage? (exploration/active/paused/shipped): "
+read -r TO_STAGE
+
+if [ ! -d "$BASE_DIR/$TO_STAGE" ]; then
+    echo "❌ Error: Invalid destination stage '$TO_STAGE'"
+    exit 1
+fi
+
+if [ "$FROM_STAGE" = "$TO_STAGE" ]; then
+    echo "❌ Error: Source and destination are the same"
+    exit 1
+fi
+
+# Check if destination already exists
+if [ -d "$BASE_DIR/$TO_STAGE/$PROJECT_NAME" ]; then
+    echo "❌ Error: Project '$PROJECT_NAME' already exists in $TO_STAGE/"
+    exit 1
+fi
+
+# Confirm the move
+echo ""
+echo "About to move:"
+echo "  FROM: $FROM_STAGE/$PROJECT_NAME"
+echo "  TO:   $TO_STAGE/$PROJECT_NAME"
+echo ""
+echo -n "Proceed? (y/N): "
+read -r CONFIRM
+
+if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+    echo "❌ Move cancelled"
+    exit 0
+fi
+
+# Perform the move
+echo ""
+echo "🚀 Moving project..."
+mv "$BASE_DIR/$FROM_STAGE/$PROJECT_NAME" "$BASE_DIR/$TO_STAGE/$PROJECT_NAME"
+
+if [ $? -eq 0 ]; then
+    echo "✅ Project moved successfully!"
+    
+    # Run health check if available
+    if [ -f "$BASE_DIR/$TO_STAGE/$PROJECT_NAME/package.json" ] && grep -q "check:health" "$BASE_DIR/$TO_STAGE/$PROJECT_NAME/package.json"; then
+        echo ""
+        echo "🏥 Running health check..."
+        cd "$BASE_DIR/$TO_STAGE/$PROJECT_NAME"
+        npm run check:health
+    fi
+    
+    echo ""
+    echo "📁 Project location: $TO_STAGE/$PROJECT_NAME"
+    echo "💡 Consider updating the project documentation to reflect its new stage"
+else
+    echo "❌ Error: Failed to move project"
+    exit 1
+fi

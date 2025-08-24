@@ -1,0 +1,28 @@
+{
+  "ts": "2025-08-24T11:46:38.425Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PreToolUse",
+  "tool": "Bash",
+  "details": "ls -la",
+  "project": "AIPortfolio",
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "tool_input": {
+    "command": "ls -la",
+    "description": "Check all files including hidden"
+  }
+}
+{
+  "ts": "2025-08-24T11:46:43.056Z",
+  "session_id": "2cf62463-aa25-4602-a5c0-91d53e28c836",
+  "hook_event": "PreToolUse",
+  "tool": "Bash",
+  "details": "mv logs .system/final-logs",
+  "project": "AIPortfolio",
+  "user_prompt": null,
+  "transcript_path": "/home/robert/.claude-dev1/projects/-home-robert-AIPortfolio/2cf62463-aa25-4602-a5c0-91d53e28c836.jsonl",
+  "tool_input": {
+    "command": "mv logs .system/final-logs",
+    "description": "Move logs to system"
+  }
+}

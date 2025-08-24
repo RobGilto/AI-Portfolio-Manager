@@ -1,0 +1,53 @@
+{
+  "now": [
+    "claudeOperationV3"
+  ],
+  "next": [
+    "awesome-new-project",
+    "test-clash",
+    "test-index-system"
+  ],
+  "maybe": [],
+  "done": [
+    "runequest-solo-cli",
+    "test-clash"
+  ],
+  "focus": "test-clash",
+  "updated": "2025-08-24T13:01:56.159Z",
+  "exploration": [],
+  "vault": [
+    "neutron-ai-pkm"
+  ],
+  "funeral": [],
+  "graveyard": [
+    "testing-app-project",
+    "new-project-test",
+    "new-project-test"
+  ],
+  "completionHistory": [
+    {
+      "project": "claudeOperationV3",
+      "completedAt": "2025-08-24T12:06:26.351Z"
+    },
+    {
+      "project": "runequest-solo-cli",
+      "completedAt": "2025-08-24T12:06:33.900Z"
+    },
+    {
+      "project": "claudeOperationV3",
+      "completedAt": "2025-08-24T12:11:47.124Z"
+    },
+    {
+      "project": "test-clash",
+      "completedAt": "2025-08-24T12:27:21.083Z"
+    },
+    {
+      "project": "runequest-solo-cli",
+      "completedAt": "2025-08-24T12:57:01.042Z"
+    },
+    {
+      "project": "claudeOperationV3",
+      "completedAt": "2025-08-24T13:00:22.895Z"
+    }
+  ]
+}

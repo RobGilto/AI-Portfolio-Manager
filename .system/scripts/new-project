@@ -1,0 +1,842 @@
+#!/bin/bash
+
+# PURPOSE: Interactive project creation with technology stack selection
+
+echo "🚀 AI Portfolio Project Creator"
+echo "================================"
+echo ""
+
+# Handle command line arguments if provided
+if [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
+    PROJECT_NAME="$1"
+    STAGE="$2"
+    PROJECT_TYPE="$3"
+    echo "📋 Using provided arguments: $PROJECT_NAME in $STAGE stage, type: $PROJECT_TYPE"
+    echo ""
+    
+    # Validate and convert project type with semantic fuzzy matching
+    case $PROJECT_TYPE in
+        # Exact matches and common aliases
+        1|frontend|front|react|vite|spa|webapp|website|ui|ux) PROJECT_CATEGORY="frontend" ;;
+        2|backend|back|api|rest|express|server|microservice|service) PROJECT_CATEGORY="backend" ;;
+        3|fullstack|full|nextjs|next|webapp|complete|monolith) PROJECT_CATEGORY="fullstack" ;;
+        4|ai-python|ai|python|fastapi|ml|aiml|data|analytics|model) PROJECT_CATEGORY="ai-python" ;;
+        5|cli|tool|command|terminal|console|script|automation) PROJECT_CATEGORY="cli" ;;
+        6|mcp|claude|integration|connector|plugin|extension) PROJECT_CATEGORY="mcp" ;;
+        7|ai-langchain|langchain|lang|chain|chatbot|agent|rag) PROJECT_CATEGORY="ai-langchain" ;;
+        *) 
+            # Advanced semantic fuzzy matching
+            PROJECT_TYPE_LOWER=$(echo "$PROJECT_TYPE" | tr '[:upper:]' '[:lower:]')
+            case $PROJECT_TYPE_LOWER in
+                # Frontend semantic matches
+                *front*|*react*|*vite*|*ui*|*ux*|*web*|*site*|*page*|*view*|*component*|*spa*|*client*|*browser*|*dashboard*|*interface*) 
+                    PROJECT_CATEGORY="frontend"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → frontend (user interface project)"
+                    ;;
+                # Backend semantic matches
+                *back*|*api*|*rest*|*server*|*express*|*node*|*service*|*micro*|*endpoint*|*database*|*auth*|*crud*|*graphql*|*json*|*http*)
+                    PROJECT_CATEGORY="backend"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → backend (server/API project)"
+                    ;;
+                # Fullstack semantic matches
+                *full*|*next*|*stack*|*complete*|*end2end*|*e2e*|*monolith*|*app*|*application*|*platform*|*system*)
+                    PROJECT_CATEGORY="fullstack"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → fullstack (complete web application)"
+                    ;;
+                # AI/ML Python semantic matches
+                *ai*|*python*|*fastapi*|*ml*|*machine*|*learn*|*model*|*data*|*analyt*|*predict*|*train*|*neural*|*deep*|*tensor*|*sklearn*|*pandas*|*numpy*)
+                    PROJECT_CATEGORY="ai-python"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → ai-python (AI/ML project)"
+                    ;;
+                # CLI semantic matches
+                *cli*|*tool*|*command*|*terminal*|*console*|*script*|*automat*|*batch*|*utility*|*helper*|*workflow*|*task*|*ink*)
+                    PROJECT_CATEGORY="cli"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → cli (command-line tool)"
+                    ;;
+                # MCP semantic matches
+                *mcp*|*claude*|*integrat*|*connect*|*plugin*|*extension*|*bridge*|*adapter*|*middleware*)
+                    PROJECT_CATEGORY="mcp"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → mcp (Claude integration)"
+                    ;;
+                # LangChain semantic matches
+                *lang*|*chain*|*chat*|*bot*|*agent*|*rag*|*retriev*|*embedding*|*vector*|*llm*|*openai*|*anthropic*|*conversation*)
+                    PROJECT_CATEGORY="ai-langchain"
+                    echo "🔍 Semantic match: '$PROJECT_TYPE' → ai-langchain (AI agent/chatbot project)"
+                    ;;
+                *)
+                    # Smart default based on project name if possible
+                    echo "⚠️  Could not match project type: '$PROJECT_TYPE'"
+                    
+                    # Try to infer from project name as last resort
+                    PROJECT_NAME_LOWER=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
+                    case $PROJECT_NAME_LOWER in
+                        *ui*|*frontend*|*web*|*app*)
+                            PROJECT_CATEGORY="frontend"
+                            echo "🔮 Inferring from project name → frontend"
+                            ;;
+                        *api*|*backend*|*service*)
+                            PROJECT_CATEGORY="backend"
+                            echo "🔮 Inferring from project name → backend"
+                            ;;
+                        *bot*|*ai*|*ml*)
+                            PROJECT_CATEGORY="ai-python"
+                            echo "🔮 Inferring from project name → ai-python"
+                            ;;
+                        *)
+                            # Default to frontend (most common for beginners)
+                            PROJECT_CATEGORY="frontend"
+                            echo "🎲 Defaulting to: frontend (most common project type)"
+                            ;;
+                    esac
+                    
+                    echo ""
+                    echo "💡 Next time, try using these keywords:"
+                    echo "   'frontend', 'backend', 'fullstack', 'ai', 'cli', 'chatbot'"
+                    echo ""
+                    echo "📝 You can change the project type by editing package.json"
+                    echo ""
+                    # Give user 2 seconds to cancel if they want
+                    echo "⏱️  Continuing in 2 seconds... (Ctrl+C to cancel)"
+                    sleep 2
+                    ;;
+            esac
+            ;;
+    esac
+    
+    NON_INTERACTIVE=true
+elif [ -n "$1" ] && [ -n "$2" ]; then
+    PROJECT_NAME="$1"
+    STAGE="$2"
+    echo "📋 Using provided arguments: $PROJECT_NAME in $STAGE stage"
+    echo ""
+    NON_INTERACTIVE=false
+else
+    STAGE="exploration"  # Default stage for interactive mode
+    NON_INTERACTIVE=false
+fi
+
+# Step 1: Navigate to the appropriate stage directory
+cd "$(dirname "$0")/../$STAGE" || {
+    echo "❌ Error: Could not find $STAGE directory"
+    echo "Available stages: exploration, active, dev"
+    exit 1
+}
+
+# Step 2: Project Type Selection (interactive mode)
+if [ "$NON_INTERACTIVE" = false ]; then
+    if [ -z "$PROJECT_NAME" ]; then
+        echo "📋 Select Project Type:"
+        echo "1) Frontend (React/Vite/TypeScript)"
+        echo "2) Backend API (Node.js/Express)"
+        echo "3) Full-Stack (Next.js/TypeScript)"
+        echo "4) AI/ML Application (Python/FastAPI)"
+        echo "5) CLI Tool (Node.js/Ink)"
+        echo "6) MCP Server (Claude Integration)"
+        echo "7) Python AI/LangChain"
+        echo ""
+        echo -n "Choose project type (1-7): "
+        read -r PROJECT_TYPE
+
+        # Validate project type selection
+        case $PROJECT_TYPE in
+            1) PROJECT_CATEGORY="frontend" ;;
+            2) PROJECT_CATEGORY="backend" ;;
+            3) PROJECT_CATEGORY="fullstack" ;;
+            4) PROJECT_CATEGORY="ai-python" ;;
+            5) PROJECT_CATEGORY="cli" ;;
+            6) PROJECT_CATEGORY="mcp" ;;
+            7) PROJECT_CATEGORY="ai-langchain" ;;
+            *) 
+                echo "❌ Error: Invalid selection. Please choose 1-7."
+                exit 1
+                ;;
+        esac
+
+        echo "✅ Selected: $PROJECT_CATEGORY"
+        echo ""
+
+        # Step 3: Prompt for project name
+        echo -n "Enter project name: "
+        read -r PROJECT_NAME
+
+        if [ -z "$PROJECT_NAME" ]; then
+            echo "❌ Error: Project name cannot be empty"
+            exit 1
+        fi
+    else
+        # When project name is provided via command line, still ask for project type interactively
+        echo "📋 Select Project Type:"
+        echo "1) Frontend (React/Vite/TypeScript)"
+        echo "2) Backend API (Node.js/Express)"
+        echo "3) Full-Stack (Next.js/TypeScript)"
+        echo "4) AI/ML Application (Python/FastAPI)"
+        echo "5) CLI Tool (Node.js/Ink)"
+        echo "6) MCP Server (Claude Integration)"
+        echo "7) Python AI/LangChain"
+        echo ""
+        echo -n "Choose project type (1-7): "
+        read -r PROJECT_TYPE
+
+        # Validate project type selection
+        case $PROJECT_TYPE in
+            1) PROJECT_CATEGORY="frontend" ;;
+            2) PROJECT_CATEGORY="backend" ;;
+            3) PROJECT_CATEGORY="fullstack" ;;
+            4) PROJECT_CATEGORY="ai-python" ;;
+            5) PROJECT_CATEGORY="cli" ;;
+            6) PROJECT_CATEGORY="mcp" ;;
+            7) PROJECT_CATEGORY="ai-langchain" ;;
+            *) 
+                echo "❌ Error: Invalid selection. Please choose 1-7."
+                exit 1
+                ;;
+        esac
+
+        echo "✅ Selected: $PROJECT_CATEGORY"
+        echo ""
+    fi
+else
+    # Non-interactive mode - all parameters provided
+    echo "✅ Selected: $PROJECT_CATEGORY"
+    echo ""
+fi
+
+# Step 4: Create project structure based on type
+echo "🏗️  Creating $PROJECT_CATEGORY project structure..."
+mkdir -p "./$PROJECT_NAME"
+
+# Function to create project based on type
+create_project_structure() {
+    local project_type="$1"
+    local project_name="$2"
+    
+    case $project_type in
+        "frontend")
+            create_frontend_project "$project_name"
+            ;;
+        "backend")
+            create_backend_project "$project_name"
+            ;;
+        "fullstack")
+            create_fullstack_project "$project_name"
+            ;;
+        "ai-python")
+            create_ai_python_project "$project_name"
+            ;;
+        "cli")
+            create_cli_project "$project_name"
+            ;;
+        "mcp")
+            create_mcp_project "$project_name"
+            ;;
+        "ai-langchain")
+            create_ai_langchain_project "$project_name"
+            ;;
+        *)
+            echo "❌ Error: Unknown project type: $project_type"
+            exit 1
+            ;;
+    esac
+}
+
+# Frontend project (React/Vite/TypeScript)
+create_frontend_project() {
+    local name="$1"
+    
+    cat > "./$name/package.json" << EOF
+{
+  "name": "$name",
+  "version": "1.0.0",
+  "description": "Frontend application with React, Vite, and TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:health": "node ../scripts/health-check.js",
+    "check:size": "find src -name '*.ts' -o -name '*.tsx' | xargs wc -l | sort -nr",
+    "check:imports": "node ../scripts/import-check.js",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md",
+    "session:end": "npm run check:health && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.0"
+  }
+}
+EOF
+
+    create_common_structure "$name"
+    mkdir -p "./$name/src/components"
+    echo "// PURPOSE: Main App component" > "./$name/src/App.tsx"
+    echo "// PURPOSE: Application entry point" > "./$name/src/main.tsx"
+}
+
+# Backend project (Node.js/Express/TypeScript)
+create_backend_project() {
+    local name="$1"
+    
+    cat > "./$name/package.json" << EOF
+{
+  "name": "$name",
+  "version": "1.0.0",
+  "description": "Backend API with Node.js, Express, and TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "check:health": "node ../scripts/health-check.js",
+    "check:size": "find src -name '*.ts' | xargs wc -l | sort -nr",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md",
+    "session:end": "npm run check:health && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/node": "^20.0.0",
+    "nodemon": "^3.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+}
+EOF
+
+    create_common_structure "$name"
+    mkdir -p "./$name/src/routes" "./$name/src/middleware"
+    echo "// PURPOSE: Express server entry point" > "./$name/src/index.ts"
+}
+
+# Full-stack project (Next.js/TypeScript)
+create_fullstack_project() {
+    local name="$1"
+    
+    cat > "./$name/package.json" << EOF
+{
+  "name": "$name",
+  "version": "1.0.0",
+  "description": "Full-stack application with Next.js and TypeScript",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "check:health": "node ../scripts/health-check.js",
+    "check:size": "find src pages -name '*.ts' -o -name '*.tsx' | xargs wc -l | sort -nr",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md",
+    "session:end": "npm run check:health && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}
+EOF
+
+    create_common_structure "$name"
+    mkdir -p "./$name/src/app" "./$name/src/components" "./$name/src/lib"
+    echo "// PURPOSE: Next.js root layout" > "./$name/src/app/layout.tsx"
+    echo "// PURPOSE: Next.js home page" > "./$name/src/app/page.tsx"
+}
+
+# AI/ML Python project (FastAPI)
+create_ai_python_project() {
+    local name="$1"
+    
+    cat > "./$name/pyproject.toml" << EOF
+[project]
+name = "$name"
+version = "0.1.0"
+description = "AI/ML application with Python and FastAPI"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+    "pydantic>=2.0.0",
+    "openai>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.scripts]
+dev = "uvicorn main:app --reload"
+check-health = "python ../scripts/health-check.py"
+EOF
+
+    create_common_structure "$name"
+    echo "# PURPOSE: FastAPI application entry point" > "./$name/main.py"
+    echo "# PURPOSE: AI/ML utility functions" > "./$name/utils.py"
+}
+
+# CLI Tool project (Node.js/Ink)
+create_cli_project() {
+    local name="$1"
+    
+    cat > "./$name/package.json" << EOF
+{
+  "name": "$name",
+  "version": "1.0.0",
+  "description": "CLI tool with Node.js and Ink",
+  "type": "module",
+  "bin": {
+    "$name": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.tsx",
+    "build": "tsc",
+    "check:health": "node ../scripts/health-check.js",
+    "check:size": "find src -name '*.ts' -o -name '*.tsx' | xargs wc -l | sort -nr",
+    "check:imports": "node ../scripts/import-check.js",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md",
+    "session:end": "npm run check:health && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "ink": "^4.4.0",
+    "react": "^18.2.0",
+    "commander": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  }
+}
+EOF
+
+    create_common_structure "$name"
+    mkdir -p "./$name/src/components" "./$name/src/commands"
+    echo "// PURPOSE: CLI application entry point" > "./$name/src/cli.tsx"
+}
+
+# MCP Server project (Claude Integration)
+create_mcp_project() {
+    local name="$1"
+    
+    cat > "./$name/package.json" << EOF
+{
+  "name": "$name",
+  "version": "1.0.0",
+  "description": "MCP Server for Claude integration",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "check:health": "node ../scripts/health-check.js",
+    "check:size": "find src -name '*.ts' | xargs wc -l | sort -nr",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md",
+    "session:end": "npm run check:health && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.0",
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  }
+}
+EOF
+
+    create_common_structure "$name"
+    mkdir -p "./$name/src/tools" "./$name/src/handlers"
+    echo "// PURPOSE: MCP server entry point" > "./$name/src/server.ts"
+}
+
+# AI/LangChain Python project
+create_ai_langchain_project() {
+    local name="$1"
+    
+    cat > "./$name/pyproject.toml" << EOF
+[project]
+name = "$name"
+version = "0.1.0"
+description = "AI application with Python and LangChain"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "streamlit>=1.35.0",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.scripts]
+dev = "streamlit run main.py"
+check-health = "python ../scripts/health-check.py"
+EOF
+
+    create_common_structure "$name"
+    echo "# PURPOSE: LangChain application entry point" > "./$name/main.py"
+    echo "# PURPOSE: LangChain utilities and chains" > "./$name/chains.py"
+}
+
+# Common structure for all projects
+create_common_structure() {
+    local name="$1"
+    
+    # Copy comprehensive template structure if available (v1.1 with testing framework)
+    if [ -d "../workflow/v1.1/templates/project-structure" ]; then
+        cp -r "../workflow/v1.1/templates/project-structure"/* "./$name/"
+        echo "✅ Using v1.1 project structure with human-AI testing framework"
+    elif [ -d "../workflow/v1.0/templates/project-structure" ]; then
+        cp -r "../workflow/v1.0/templates/project-structure"/* "./$name/"
+        mkdir -p "./$name/docs/testing/features"
+        echo "✅ Using v1.0 project structure (upgraded with testing directory)"
+    else
+        # Create enhanced basic structure with testing
+        mkdir -p "./$name/docs" "./$name/learning" "./$name/scripts" "./$name/docs/testing/features"
+        echo "⚠️  Using basic structure with testing framework"
+        
+        # Create basic docs
+        cat > "./$name/docs/CORE.md" << EOF
+# Core Purpose
+
+## The ONE Thing This Project Does
+[Define the single core responsibility of this project]
+
+## Success Criteria
+- [ ] [Specific measurable outcome]
+- [ ] [Another specific outcome]
+
+## Boundaries (What This Project Does NOT Do)
+- [Explicit limitation 1]
+- [Explicit limitation 2]
+EOF
+
+        cat > "./$name/docs/ACTIVE.md" << EOF
+# Active Development
+
+## Current Sprint (3 Features Maximum)
+1. [ ] [Feature 1 - specific and measurable]
+2. [ ] [Feature 2 - specific and measurable]  
+3. [ ] [Feature 3 - specific and measurable]
+
+## Definition of Done
+- [ ] Feature works as specified
+- [ ] Health checks pass
+- [ ] Documentation updated
+- [ ] No files exceed 250 lines
+EOF
+
+        # Create CLAUDE.md using comprehensive template (prioritize v1.1)
+        if [ -f "../workflow/v1.1/templates/CLAUDE.md" ]; then
+            cp "../workflow/v1.1/templates/CLAUDE.md" "./$name/CLAUDE.md"
+            echo "✅ Using v1.1 CLAUDE.md with human-AI testing protocol"
+        elif [ -f "../workflow/v1.0/templates/CLAUDE.md" ]; then
+            cp "../workflow/v1.0/templates/CLAUDE.md" "./$name/CLAUDE.md"
+            echo "✅ Using v1.0 CLAUDE.md template"
+        else
+            # Fallback to basic template if comprehensive one not found
+            cat > "./$name/CLAUDE.md" << EOF
+# CLAUDE.md - Project Constitution
+
+## 🚨 HARD RULES (Never Override)
+1. **NO file exceeds 300 lines.** At 250 lines, STOP and refactor.
+2. **NO new features without updating docs/ACTIVE.md FIRST**
+3. **NO "while we're at it" additions.** Add to docs/PARKED.md instead.
+
+## Project Type: $PROJECT_CATEGORY
+
+## Essential Commands
+\`\`\`bash
+npm run dev              # Start development
+npm run build            # Build for production
+npm run check:health     # Check project health
+npm run check:imports    # Check 3-import maximum
+npm run session:start   # Begin development session
+npm run session:end     # End development session
+\`\`\`
+
+## File Size Monitoring
+Run \`npm run check:size\` every 10 minutes during development.
+
+## Emergency Reset Protocol
+If project feels chaotic:
+1. STOP all new features
+2. Review all files over 250 lines
+3. Check if scope expanded beyond docs/CORE.md
+4. Return to single, focused objective
+EOF
+            echo "⚠️  Using fallback CLAUDE.md template (comprehensive template not found)"
+        fi
+        
+        # Create enhanced health check script (prioritize v1.1)
+        if [ -f "../workflow/v1.1/templates/scripts/health-check.js" ]; then
+            cp "../workflow/v1.1/templates/scripts/health-check.js" "./$name/scripts/health-check.js"
+            chmod +x "./$name/scripts/health-check.js"
+            echo "✅ Using v1.1 health-check with testing protocol"
+        elif [ -f "../workflow/v1.0/templates/scripts/health-check.js" ]; then
+            cp "../workflow/v1.0/templates/scripts/health-check.js" "./$name/scripts/health-check.js"
+            chmod +x "./$name/scripts/health-check.js"
+            echo "✅ Using v1.0 health-check script"
+        else
+            # Enhanced fallback health check
+            cat > "./$name/scripts/health-check.js" << EOF
+#!/usr/bin/env node
+
+// PURPOSE: Enhanced portfolio health monitoring for $name
+
+const fs = require('fs');
+const path = require('path');
+
+console.log('🏥 Health Check for $name ($PROJECT_CATEGORY)');
+console.log('============================================');
+
+let violations = 0;
+
+// Check file sizes (300 line limit)
+function checkFileSizes() {
+    if (!fs.existsSync('./src')) {
+        console.log('📁 No src directory found');
+        return;
+    }
+    
+    const checkDir = (dir) => {
+        const files = fs.readdirSync(dir);
+        files.forEach(file => {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+            
+            if (stat.isDirectory() && !file.startsWith('.')) {
+                checkDir(filePath);
+            } else if (/\.(js|jsx|ts|tsx)$/.test(file)) {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const lines = content.split('\\n').length;
+                
+                if (lines > 300) {
+                    console.log(\`❌ File size violation: \${filePath} (\${lines} lines)\`);
+                    violations++;
+                } else if (lines > 250) {
+                    console.log(\`⚠️  Approaching limit: \${filePath} (\${lines} lines)\`);
+                }
+            }
+        });
+    };
+    
+    checkDir('./src');
+}
+
+// Check PURPOSE comments
+function checkPurposeComments() {
+    if (!fs.existsSync('./src')) return;
+    
+    const checkDir = (dir) => {
+        const files = fs.readdirSync(dir);
+        files.forEach(file => {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+            
+            if (stat.isDirectory() && !file.startsWith('.')) {
+                checkDir(filePath);
+            } else if (/\.(js|jsx|ts|tsx)$/.test(file)) {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const firstLines = content.split('\\n').slice(0, 10).join('\\n');
+                
+                if (!/\\/\\/\\s*PURPOSE:|\/\\*\\s*PURPOSE:/i.test(firstLines)) {
+                    console.log(\`⚠️  Missing PURPOSE comment: \${filePath}\`);
+                }
+            }
+        });
+    };
+    
+    checkDir('./src');
+}
+
+checkFileSizes();
+checkPurposeComments();
+
+if (violations === 0) {
+    console.log('✅ All health checks passed');
+} else {
+    console.log(\`❌ \${violations} violations found\`);
+    process.exit(1);
+}
+EOF
+            chmod +x "./$name/scripts/health-check.js"
+            echo "⚠️  Using enhanced fallback health-check script"
+        fi
+    fi
+    
+    # Create README
+    cat > "./$name/README.md" << EOF
+# $name
+
+## Project Type: $PROJECT_CATEGORY
+
+## Description
+[Add project description here]
+
+## Quick Start
+\`\`\`bash
+# Install dependencies
+npm install  # or: uv sync (for Python projects)
+
+# Start development
+npm run dev
+
+# Check project health
+npm run check:health
+\`\`\`
+
+## Development Discipline
+- **300-line file limit** - Split files before they become unwieldy
+- **Single responsibility** - Each file has one clear purpose
+- **Health monitoring** - Run checks every 10 minutes
+
+## Commands
+- \`npm run dev\` - Start development
+- \`npm run build\` - Build for production
+- \`npm run check:health\` - Check project health
+- \`npm run check:imports\` - Check 3-import maximum
+- \`npm run check:size\` - Monitor file sizes
+- \`npm run session:start\` - Begin development session
+- \`npm run session:end\` - End development session
+
+## Next Steps
+1. Update docs/CORE.md with project purpose
+2. Define 3 features in docs/ACTIVE.md
+3. Begin implementation with health monitoring
+EOF
+}
+
+# Execute project creation
+create_project_structure "$PROJECT_CATEGORY" "$PROJECT_NAME"
+
+# Step 5: Navigate to project and install dependencies
+cd "./$PROJECT_NAME" || {
+    echo "❌ Error: Could not navigate to new project"
+    exit 1
+}
+
+echo ""
+echo "📦 Installing dependencies..."
+
+# Install dependencies based on project type
+case $PROJECT_CATEGORY in
+    "ai-python"|"ai-langchain")
+        if command -v uv >/dev/null 2>&1; then
+            echo "Using uv for Python dependency management..."
+            uv sync
+        else
+            echo "⚠️  uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+            echo "For now, you can manually install dependencies later."
+        fi
+        ;;
+    *)
+        if [ -f "package.json" ]; then
+            npm install
+        fi
+        ;;
+esac
+
+echo ""
+echo "🎉 Project '$PROJECT_NAME' created successfully!"
+echo "📁 Location: $STAGE/$PROJECT_NAME"
+echo "🏷️  Type: $PROJECT_CATEGORY"
+echo ""
+
+# Show project-specific next steps
+case $PROJECT_CATEGORY in
+    "frontend")
+        echo "🚀 Frontend Project Next Steps:"
+        echo "  npm run dev                    # Start Vite development server"
+        echo "  # Edit src/App.tsx to build your React application"
+        ;;
+    "backend")
+        echo "🚀 Backend API Next Steps:"
+        echo "  npm run dev                    # Start Express server with nodemon"
+        echo "  # Edit src/index.ts to build your API endpoints"
+        ;;
+    "fullstack")
+        echo "🚀 Full-Stack Next Steps:"
+        echo "  npm run dev                    # Start Next.js development server"
+        echo "  # Edit src/app/page.tsx to build your application"
+        ;;
+    "ai-python")
+        echo "🚀 AI/ML Python Next Steps:"
+        echo "  uv run uvicorn main:app --reload  # Start FastAPI server"
+        echo "  # Edit main.py to build your AI/ML API"
+        ;;
+    "cli")
+        echo "🚀 CLI Tool Next Steps:"
+        echo "  npm run dev                    # Start CLI development"
+        echo "  # Edit src/cli.tsx to build your terminal interface"
+        ;;
+    "mcp")
+        echo "🚀 MCP Server Next Steps:"
+        echo "  npm run dev                    # Start MCP server"
+        echo "  # Edit src/server.ts to build Claude integrations"
+        ;;
+    "ai-langchain")
+        echo "🚀 AI/LangChain Next Steps:"
+        echo "  uv run streamlit run main.py   # Start Streamlit interface"
+        echo "  # Edit main.py to build your LangChain application"
+        ;;
+esac
+
+echo ""
+echo "📋 Essential Commands:"
+echo "  npm run check:health           # Check project health"
+echo "  npm run check:imports          # Check 3-import maximum"
+echo "  npm run check:size             # Monitor file sizes"
+echo "  npm run session:start          # Begin development session"
+echo "  npm run session:end            # End development session"
+echo ""
+echo "📚 Documentation:"
+echo "  docs/CORE.md                   # Define project purpose"
+echo "  docs/ACTIVE.md                 # Plan current features"
+echo "  CLAUDE.md                      # Development constitution"
+echo ""
+echo "💡 Remember: Follow the 300-line file limit and health monitoring!"
+echo "   Run 'npm run check:size' every 10 minutes during development."
+echo ""
+
+# Auto CD into the new project directory
+PROJECT_FULL_PATH="$(pwd)"
+echo "📂 Project created at: $PROJECT_FULL_PATH"
+echo ""
+
+# Automatically set up GitHub Actions
+echo "🤖 Setting up GitHub Actions for Claude Code..."
+echo ""
+if [ -f "../../scripts/github-actions-setup" ]; then
+    bash ../../scripts/github-actions-setup
+else
+    echo "⚠️  GitHub Actions setup script not found at ../../scripts/github-actions-setup"
+    echo "   You can manually run /github-actions-setup from the project directory"
+fi
+
+echo ""
+
+# Export the path so parent shell can use it if needed
+export NEW_PROJECT_PATH="$PROJECT_FULL_PATH"
+
+# Important note about changing directory
+echo "📂 To enter your new project directory, run:"
+echo "  cd $PROJECT_FULL_PATH"

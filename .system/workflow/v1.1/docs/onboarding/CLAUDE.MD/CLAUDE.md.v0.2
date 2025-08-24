@@ -1,0 +1,82 @@
+# CLAUDE.md - AI Development Guidelines
+
+## 📁 Project Organization
+
+**File Structure Rules:**
+- All `.md` files (except this CLAUDE.md) go in `docs/` folder
+- Frontend code belongs in `src/frontend/`
+- Backend code belongs in `src/backend/`
+- Shared utilities belong in `src/shared/`
+- Keep root directory clean
+
+**Documentation References:**
+Use `@filename` to reference other documentation:
+- `@api.md` - API documentation and endpoints
+- `@architecture.md` - System design and structure
+- `@deployment.md` - Deployment and environment setup
+- `@testing.md` - Testing strategies and guidelines
+
+## 🤖 Working with AI
+
+### Effective Requests
+- **Be specific** about file paths and folder structure
+- **Provide context** about existing code and architecture
+- **Ask for organized code** - specify target folders
+- **Request documentation** alongside implementation
+- **Reference docs** using `@filename` when asking for related changes
+
+### Good Prompt Examples
+```
+"Create a user authentication component in src/frontend/components/ following @api.md"
+"Add error handling to the API in src/backend/services/ per @architecture.md guidelines"
+"Review this code for best practices and update @testing.md if needed"
+"Implement the payment flow described in @api.md"
+```
+
+## 💡 Core Principles
+
+### Code Quality
+- **Single Responsibility**: One function, one purpose
+- **Consistent Naming**: Clear, descriptive variable and function names
+- **Error Handling**: Always handle edge cases and failures
+- **Documentation**: Comment complex logic, document APIs
+
+### Organization
+- **Separation of Concerns**: Keep business logic separate from presentation
+- **Modular Design**: Break large components into smaller, reusable pieces
+- **Clear Dependencies**: Minimize coupling between modules
+- **Logical Grouping**: Related files should be in the same folder
+
+### Best Practices
+- **Test Early**: Write tests alongside features
+- **Iterate Small**: Make incremental, reviewable changes
+- **Review Often**: Ask AI to review code for improvements
+- **Document Decisions**: Explain why, not just what
+
+## 🔄 Development Workflow
+
+1. **Plan** → Discuss structure and approach (reference @architecture.md)
+2. **Implement** → Request organized, tested code (follow @testing.md)
+3. **Review** → Ask for optimization and security checks
+4. **Document** → Update relevant docs in `docs/` folder using `@filename` references
+
+## 📚 Documentation Standards
+
+- **Cross-reference** related docs using `@filename`
+- **Keep docs updated** when making code changes
+- **Link implementations** to their documentation
+- **Use consistent** `@` references across all files
+
+Example: "This component implements the auth flow described in @api.md"
+
+## 🚫 Common Pitfalls
+
+- Dumping code in wrong folders
+- Missing error handling
+- Overly complex solutions
+- Undocumented business logic
+- Inconsistent code style
+
+---
+
+**Remember**: Good code is clean, organized, and maintainable. When in doubt, ask AI to explain the reasoning behind suggestions.

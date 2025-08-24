@@ -1,0 +1,52 @@
+{
+  "name": "project-template",
+  "version": "1.0.0",
+  "description": "AI-assisted development project template with health monitoring",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:health": "node scripts/health-check.js",
+    "check:scope": "grep -r 'TODO\\|FIXME\\|HACK' src/ || echo 'No scope violations found'",
+    "check:size": "find src -name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx' | xargs wc -l | sort -nr",
+    "check:imports": "node scripts/check-imports.js",
+    "check:purpose": "node scripts/check-purpose.js",
+    "check:all": "npm run check:health && npm run check:scope && npm run check:size && npm run check:imports && npm run check:purpose",
+    "emergency:backup": "cp -r . ../backup-$(date +%Y%m%d-%H%M%S)",
+    "emergency:reset": "node scripts/reset-protocol.js",
+    "discipline:daily": "npm run check:size && npm run check:scope",
+    "discipline:weekly": "npm run check:all",
+    "session:start": "echo '# Session $(date)' >> SESSION_LOG.md && npm run check:health",
+    "session:end": "npm run check:all && echo '## Session Complete: $(date)' >> SESSION_LOG.md"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.0"
+  },
+  "healthChecks": {
+    "maxFileLines": 300,
+    "maxImportsPerFile": 3,
+    "maxFilesInProject": 25,
+    "maxUtilFiles": 5,
+    "requiredPurposeComment": true,
+    "maxScopeViolations": 0
+  },
+  "disciplineConfig": {
+    "sessionTimeLimit": "2 hours",
+    "scopeReviewInterval": "weekly",
+    "resetTriggers": [
+      "File > 350 lines",
+      "More than 5 TODO/FIXME per file",
+      "More than 25 total files",
+      "Debug session > 30 minutes"
+    ]
+  }
+}

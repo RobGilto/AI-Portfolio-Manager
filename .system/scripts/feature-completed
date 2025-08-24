@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# PURPOSE: Global command to trigger feature completion hooks
+# SCOPE: Can be called from anywhere in the portfolio
+# USAGE: ./scripts/feature-completed <feature-name> <description>
+
+PORTFOLIO_ROOT="/home/robert/AIPortfolio"
+HOOKS_DIR="$PORTFOLIO_ROOT/workflow/v1.2/hooks"
+
+# Get current project directory
+PROJECT_PATH=$(pwd)
+
+# Check if we're in a project directory
+if [ ! -f "package.json" ]; then
+    echo "❌ Error: Not in a project directory (no package.json found)"
+    exit 1
+fi
+
+FEATURE_NAME="${1:-unnamed-feature}"
+FEATURE_DESC="${2:-No description provided}"
+
+echo "🎯 Triggering feature completion hook..."
+echo "Project: $(basename "$PROJECT_PATH")"
+echo "Feature: $FEATURE_NAME"
+
+# Execute the feature completion hook
+node "$HOOKS_DIR/hook-manager.js" feature-completed "$PROJECT_PATH" "$FEATURE_NAME" "$FEATURE_DESC"

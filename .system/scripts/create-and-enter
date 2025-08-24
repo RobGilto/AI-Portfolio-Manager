@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# PURPOSE: Create new project and automatically CD into it
+# SCOPE: Wrapper for new-project that handles directory change
+# USAGE: source ./scripts/create-and-enter <name> <stage>
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: source ./scripts/create-and-enter <name> <stage>"
+    echo "Stages: exploration, active, dev"
+    echo "Example: source ./scripts/create-and-enter my-app exploration"
+    return 1 2>/dev/null || exit 1
+fi
+
+PROJECT_NAME="$1"
+STAGE="$2"
+
+# Run the new-project script
+./scripts/new-project "$PROJECT_NAME" "$STAGE"
+
+# Check if project was created successfully
+if [ $? -eq 0 ]; then
+    # CD into the new project
+    PROJECT_PATH="$STAGE/$PROJECT_NAME"
+    if [ -d "$PROJECT_PATH" ]; then
+        cd "$PROJECT_PATH" || return 1
+        echo ""
+        echo "✅ You are now in: $(pwd)"
+        echo ""
+        
+        # Optional: Run initial setup or display status
+        if [ -f "package.json" ]; then
+            echo "📦 Project dependencies installed. Ready to start development!"
+            echo ""
+            echo "Quick commands:"
+            echo "  npm run dev          # Start development"
+            echo "  npm run check:health # Check project health"
+        fi
+    else
+        echo "❌ Error: Could not find project directory at $PROJECT_PATH"
+        return 1 2>/dev/null || exit 1
+    fi
+else
+    echo "❌ Error: Project creation failed"
+    return 1 2>/dev/null || exit 1
+fi

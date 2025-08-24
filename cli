@@ -1,0 +1,909 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+// ADHD-friendly colors and emojis
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  bright: '\x1b[1m'
+};
+
+const emojis = {
+  now: '🔥',
+  next: '📋', 
+  maybe: '💭',
+  done: '✅',
+  vault: '📦',
+  focus: '🎯',
+  success: '🎉',
+  thinking: '🤔',
+  energy: '⚡',
+  funeral: '⚰️',
+  graveyard: '🪦',
+  analysis: '🔬'
+};
+
+class PortfolioManager {
+  constructor() {
+    this.root = process.cwd();
+    this.statePath = path.join(this.root, '.system', 'state.json');
+    this.indexPath = path.join(this.root, '.system', 'project-index.json');
+    this.ensureDirectories();
+    this.state = this.loadState();
+    this.index = this.loadProjectIndex();
+  }
+
+  ensureDirectories() {
+    const dirs = ['.now', '.next', '.maybe', '.done', '.vault', '.system', '.lab/funeral', '.graveyard'];
+    dirs.forEach(dir => {
+      const fullPath = path.join(this.root, dir);
+      if (!fs.existsSync(fullPath)) {
+        fs.mkdirSync(fullPath, { recursive: true });
+      }
+    });
+  }
+
+  loadState() {
+    if (fs.existsSync(this.statePath)) {
+      try {
+        return JSON.parse(fs.readFileSync(this.statePath, 'utf8'));
+      } catch (error) {
+        console.log(`${colors.yellow}Warning: Failed to load state file, using defaults: ${error.message}${colors.reset}`);
+      }
+    }
+    return {
+      now: [],
+      next: [],
+      maybe: [],
+      done: [],
+      funeral: [],
+      graveyard: [],
+      focus: null,
+      completionHistory: [], // Track when projects were completed
+      updated: new Date().toISOString()
+    };
+  }
+
+  saveState() {
+    this.state.updated = new Date().toISOString();
+    fs.writeFileSync(this.statePath, JSON.stringify(this.state, null, 2));
+  }
+
+  loadProjectIndex() {
+    if (fs.existsSync(this.indexPath)) {
+      try {
+        return JSON.parse(fs.readFileSync(this.indexPath, 'utf8'));
+      } catch (error) {
+        console.log(`${colors.yellow}Warning: Failed to load project index, using defaults: ${error.message}${colors.reset}`);
+      }
+    }
+    return {
+      projects: {},
+      lastUpdated: new Date().toISOString(),
+      version: '1.0'
+    };
+  }
+
+  saveProjectIndex() {
+    this.index.lastUpdated = new Date().toISOString();
+    fs.writeFileSync(this.indexPath, JSON.stringify(this.index, null, 2));
+  }
+
+  registerProject(name, category, metadata = {}) {
+    this.index.projects[name] = {
+      category: category,
+      createdAt: metadata.createdAt || new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+      path: this.getProjectPath(name, category),
+      ...metadata
+    };
+    this.saveProjectIndex();
+  }
+
+  updateProjectCategory(name, newCategory) {
+    if (this.index.projects[name]) {
+      this.index.projects[name].category = newCategory;
+      this.index.projects[name].lastModified = new Date().toISOString();
+      this.index.projects[name].path = this.getProjectPath(name, newCategory);
+      this.saveProjectIndex();
+    }
+  }
+
+  removeFromIndex(name) {
+    delete this.index.projects[name];
+    this.saveProjectIndex();
+  }
+
+  getProjectPath(name, category) {
+    if (category === 'funeral') {
+      return path.join(this.root, '.lab', 'funeral', name);
+    }
+    return path.join(this.root, `.${category}`, name);
+  }
+
+  projectExists(name) {
+    return this.index.projects.hasOwnProperty(name);
+  }
+
+  findProjectLocation(name) {
+    return this.index.projects[name]?.category || null;
+  }
+
+  listProjectsByCategory(category) {
+    return Object.keys(this.index.projects).filter(name => 
+      this.index.projects[name].category === category
+    );
+  }
+
+  getAllProjects() {
+    return this.index.projects;
+  }
+
+  findProjectInCategories(name, categories) {
+    for (const category of categories) {
+      const projects = this.listProjectsByCategory(category);
+      if (projects.includes(name)) {
+        return category;
+      }
+    }
+    return null;
+  }
+
+  discoverFilesystemProjects() {
+    const categories = ['now', 'next', 'maybe', 'done', 'funeral', 'graveyard', 'vault'];
+    const filesystemProjects = {};
+    
+    for (const category of categories) {
+      let dir;
+      if (category === 'funeral') {
+        dir = path.join(this.root, '.lab', 'funeral');
+      } else {
+        dir = path.join(this.root, `.${category}`);
+      }
+      
+      if (fs.existsSync(dir)) {
+        const projects = fs.readdirSync(dir).filter(item => {
+          return fs.statSync(path.join(dir, item)).isDirectory();
+        });
+        
+        for (const project of projects) {
+          filesystemProjects[project] = category;
+        }
+      }
+    }
+    
+    return filesystemProjects;
+  }
+
+  validateProjectIndex(filesystemProjects) {
+    let syncedCount = 0;
+    let removedCount = 0;
+
+    // Check for projects in index that don't exist on filesystem
+    for (const [projectName, projectData] of Object.entries(this.index.projects)) {
+      if (!filesystemProjects[projectName]) {
+        console.log(`${colors.red}Removing from index: ${projectName} (directory not found)${colors.reset}`);
+        delete this.index.projects[projectName];
+        removedCount++;
+      } else if (filesystemProjects[projectName] !== projectData.category) {
+        console.log(`${colors.yellow}Updating category: ${projectName} (${projectData.category} → ${filesystemProjects[projectName]})${colors.reset}`);
+        this.index.projects[projectName].category = filesystemProjects[projectName];
+        this.index.projects[projectName].lastModified = new Date().toISOString();
+        this.index.projects[projectName].path = this.getProjectPath(projectName, filesystemProjects[projectName]);
+        syncedCount++;
+      }
+    }
+
+    // Check for projects on filesystem that aren't in index
+    let addedCount = 0;
+    for (const [projectName, category] of Object.entries(filesystemProjects)) {
+      if (!this.index.projects[projectName]) {
+        console.log(`${colors.green}Adding to index: ${projectName} (found in ${category})${colors.reset}`);
+        this.registerProject(projectName, category, {
+          createdAt: new Date().toISOString(),
+          note: 'Added during sync'
+        });
+        addedCount++;
+      }
+    }
+
+    return { syncedCount, addedCount, removedCount };
+  }
+
+  reportSyncResults(syncedCount, addedCount, removedCount) {
+    console.log(`${emojis.success} Sync complete:`);
+    console.log(`  • ${addedCount} projects added to index`);
+    console.log(`  • ${syncedCount} projects updated in index`);  
+    console.log(`  • ${removedCount} projects removed from index`);
+    console.log(`  • Total projects: ${Object.keys(this.index.projects).length}`);
+  }
+
+  syncProjectIndex() {
+    console.log(`${colors.yellow}Checking filesystem for projects...${colors.reset}`);
+
+    const filesystemProjects = this.discoverFilesystemProjects();
+    const { syncedCount, addedCount, removedCount } = this.validateProjectIndex(filesystemProjects);
+    
+    this.saveProjectIndex();
+    this.reportSyncResults(syncedCount, addedCount, removedCount);
+  }
+
+  getRecentDone(projects) {
+    // Ensure completionHistory exists
+    if (!this.state.completionHistory) {
+      this.state.completionHistory = [];
+    }
+
+    // Sort by completion time (most recent first) and take top 3
+    const sortedHistory = this.state.completionHistory
+      .filter(entry => projects.includes(entry.project))
+      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+      .slice(0, 3);
+
+    // If we don't have enough history data, just return all available projects (no duplicates)
+    if (sortedHistory.length === 0) {
+      return projects.slice(0, Math.min(3, projects.length));
+    }
+
+    return sortedHistory.map(entry => entry.project);
+  }
+
+
+  moveProject(name, from, to) {
+    // Check if project exists in index
+    if (!this.projectExists(name)) {
+      console.log(`${colors.red}Project "${name}" not found in index${colors.reset}`);
+      return false;
+    }
+
+    const fromPath = this.getProjectPath(name, from);
+    const toPath = this.getProjectPath(name, to);
+    
+    // Check if source directory exists
+    if (!fs.existsSync(fromPath)) {
+      // Check visible directories for initial onboarding
+      const visiblePath = path.join(this.root, from, name);
+      if (fs.existsSync(visiblePath)) {
+        try {
+          execSync(`mv "${visiblePath}" "${toPath}"`);
+        } catch (error) {
+          console.log(`${colors.red}Failed to move project: ${error.message}${colors.reset}`);
+          return false;
+        }
+      } else {
+        console.log(`${colors.red}Project directory "${name}" not found at ${fromPath}${colors.reset}`);
+        return false;
+      }
+    } else {
+      // Move the directory
+      try {
+        execSync(`mv "${fromPath}" "${toPath}"`);
+      } catch (error) {
+        console.log(`${colors.red}Failed to move project: ${error.message}${colors.reset}`);
+        return false;
+      }
+    }
+
+    // Update project index
+    this.updateProjectCategory(name, to);
+
+    console.log(`${emojis.success} Moved "${name}" from ${from} to ${to}`);
+    return true;
+  }
+
+  showStatus() {
+    console.log(`${colors.bright}${emojis.focus} Portfolio Status${colors.reset}\n`);
+    
+    // Current focus
+    if (this.state.focus) {
+      console.log(`${colors.yellow}${emojis.now} Current Focus: ${this.state.focus}${colors.reset}\n`);
+    }
+
+    // Show each category (hide graveyard from main status)
+    const categories = [
+      { key: 'now', emoji: emojis.now, color: colors.red, label: 'NOW (Active)' },
+      { key: 'next', emoji: emojis.next, color: colors.blue, label: 'NEXT (Ready)' },
+      { key: 'maybe', emoji: emojis.maybe, color: colors.magenta, label: 'MAYBE (Ideas)' },
+      { key: 'done', emoji: emojis.done, color: colors.green, label: 'DONE (Shipped)' },
+      { key: 'funeral', emoji: emojis.funeral, color: colors.yellow, label: 'FUNERAL (Analyzing)' }
+    ];
+
+    categories.forEach(cat => {
+      const projects = this.listProjectsByCategory(cat.key);
+      console.log(`${cat.color}${cat.emoji} ${cat.label}:${colors.reset}`);
+      
+      if (projects.length === 0) {
+        console.log(`  ${colors.cyan}(empty)${colors.reset}`);
+      } else if (cat.key === 'done') {
+        // Show only the most recent 3 done projects
+        const recentDone = this.getRecentDone(projects);
+        recentDone.forEach(project => {
+          const marker = this.state.focus === project ? ' ← FOCUS' : '';
+          console.log(`  • ${project}${colors.yellow}${marker}${colors.reset}`);
+        });
+        if (projects.length > 3) {
+          console.log(`  ${colors.cyan}... and ${projects.length - 3} more (use ./cli ls done)${colors.reset}`);
+        }
+      } else {
+        projects.forEach(project => {
+          const marker = this.state.focus === project ? ' ← FOCUS' : '';
+          console.log(`  • ${project}${colors.yellow}${marker}${colors.reset}`);
+        });
+      }
+      console.log();
+    });
+  }
+
+  showHelp() {
+    console.log(`
+${colors.bright}${emojis.focus} Portfolio CLI - ADHD-Friendly Project Management${colors.reset}
+
+${colors.yellow}🔥 FOCUS COMMANDS:${colors.reset}                    ${colors.yellow}📦 ORGANIZATION:${colors.reset}
+  ${colors.green}./cli${colors.reset}                    Show this help + status      ${colors.green}./cli ls [category]${colors.reset}      List projects (now/next/maybe/done)
+  ${colors.green}./cli status${colors.reset} (s)         Show all projects            ${colors.green}./cli cd <name>${colors.reset}          CD to project directory
+  ${colors.green}./cli focus [project]${colors.reset}    Set/show current focus       ${colors.green}./cli archive <name>${colors.reset}     Move to vault
+  ${colors.green}./cli today${colors.reset}              Today's priorities           ${colors.green}./cli done${colors.reset}               Show all completed projects
+  ${colors.green}./cli remind${colors.reset}             "What am I working on?"      ${colors.green}./cli graveyard${colors.reset}          Show all buried projects
+                                                       ${colors.green}./cli delete <name>${colors.reset}      Permanently delete project
+
+${colors.yellow}📋 PROJECT FLOW:${colors.reset}                     ${colors.yellow}⚰️ FAILURE WORKFLOW:${colors.reset}
+  ${colors.green}./cli create <name>${colors.reset}      Create new project            ${colors.green}./cli fail <name>${colors.reset}        Move failed project to funeral
+  ${colors.green}./cli onboard <name>${colors.reset}     Move project to NEXT         ${colors.green}./cli analyze <name>${colors.reset}     Start post-mortem analysis
+  ${colors.green}./cli start <name>${colors.reset}       Move NEXT → NOW              ${colors.green}./cli bury <name>${colors.reset}        Move to graveyard (skip analysis)
+  ${colors.green}./cli ship <name>${colors.reset}        Move NOW → DONE              ${colors.green}./cli rename <old> <new>${colors.reset} Rename any project
+  ${colors.green}./cli pause <name>${colors.reset}       Move to MAYBE
+
+${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
+  ${colors.green}./cli help${colors.reset} (-h)          This help
+  ${colors.green}./cli cheat${colors.reset}              Quick reference
+  ${colors.green}./cli examples${colors.reset}           Usage examples
+`);
+  }
+
+  showCheat() {
+    console.log(`
+${colors.bright}Quick Reference Card${colors.reset}
+
+${colors.green}s${colors.reset}        status
+${colors.green}f <name>${colors.reset} focus project  
+${colors.green}o <name>${colors.reset} onboard
+${colors.green}start <name>${colors.reset} begin work
+${colors.green}ship <name>${colors.reset}  complete
+${colors.green}?${colors.reset}        help
+`);
+  }
+
+  run() {
+    const args = process.argv.slice(2);
+    const cmd = args[0];
+    const name = args[1];
+
+    switch(cmd) {
+      case undefined:
+        this.showHelp();
+        this.showStatus();
+        break;
+      
+      case 'status':
+      case 's':
+        this.showStatus();
+        break;
+        
+      case 'help':
+      case '--help':
+      case '-h':
+      case '?':
+        this.showHelp();
+        break;
+        
+      case 'cheat':
+        this.showCheat();
+        break;
+        
+      case 'onboard':
+      case 'o':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli onboard <project-name>${colors.reset}`);
+          return;
+        }
+        // Try to move from visible directories first
+        if (fs.existsSync(path.join(this.root, 'exploration', name))) {
+          this.moveProject(name, 'exploration', 'next');
+        } else if (fs.existsSync(path.join(this.root, 'active', name))) {
+          this.moveProject(name, 'active', 'now');  
+        } else {
+          console.log(`${colors.red}Project "${name}" not found in exploration/ or active/${colors.reset}`);
+        }
+        break;
+        
+      case 'focus':
+      case 'f':
+        if (!name) {
+          if (this.state.focus) {
+            console.log(`${emojis.focus} Current focus: ${this.state.focus}`);
+          } else {
+            console.log(`${emojis.thinking} No current focus set`);
+          }
+        } else {
+          this.state.focus = name;
+          this.saveState();
+          console.log(`${emojis.focus} Focus set to: ${name}`);
+        }
+        break;
+        
+      case 'start':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli start <project-name>${colors.reset}`);
+          return;
+        }
+        // Check if already in NOW
+        const nowProjects = this.listProjectsByCategory('now');
+        if (nowProjects.includes(name)) {
+          console.log(`${emojis.focus} "${name}" is already active. Setting as focus...`);
+          this.state.focus = name;
+          this.saveState();
+        } else {
+          // Find project in NEXT, MAYBE, DONE, or GRAVEYARD and move to NOW
+          const nextProjects = this.listProjectsByCategory('next');
+          const maybeProjects = this.listProjectsByCategory('maybe');
+          const doneProjects = this.listProjectsByCategory('done');
+          const graveyardProjects = this.listProjectsByCategory('graveyard');
+          
+          if (nextProjects.includes(name)) {
+            this.moveProject(name, 'next', 'now');
+            this.state.focus = name;
+            this.saveState();
+          } else if (maybeProjects.includes(name)) {
+            this.moveProject(name, 'maybe', 'now');
+            this.state.focus = name;
+            this.saveState();
+          } else if (doneProjects.includes(name)) {
+            this.moveProject(name, 'done', 'now');
+            console.log(`${emojis.focus} Refocusing on shipped project "${name}"`);
+            this.state.focus = name;
+            this.saveState();
+          } else if (graveyardProjects.includes(name)) {
+            this.moveProject(name, 'graveyard', 'now');
+            console.log(`${emojis.energy} Resurrected "${name}" from graveyard to active work!`);
+            this.state.focus = name;
+            this.saveState();
+          } else {
+            console.log(`${colors.red}Project "${name}" not found in NEXT, MAYBE, DONE, or GRAVEYARD${colors.reset}`);
+          }
+        }
+        break;
+        
+      case 'ship':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli ship <project-name>${colors.reset}`);
+          return;
+        }
+        this.moveProject(name, 'now', 'done');
+        
+        // Track completion time
+        if (!this.state.completionHistory) {
+          this.state.completionHistory = [];
+        }
+        this.state.completionHistory.push({
+          project: name,
+          completedAt: new Date().toISOString()
+        });
+        
+        if (this.state.focus === name) {
+          this.state.focus = null;
+        }
+        this.saveState();
+        break;
+        
+      case 'pause':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli pause <project-name>${colors.reset}`);
+          return;
+        }
+        // Find project in NOW or NEXT and move to MAYBE
+        const pauseNowProjects = this.listProjectsByCategory('now');
+        const pauseNextProjects = this.listProjectsByCategory('next');
+        
+        if (pauseNowProjects.includes(name)) {
+          this.moveProject(name, 'now', 'maybe');
+          if (this.state.focus === name) {
+            this.state.focus = null;
+            this.saveState();
+          }
+        } else if (pauseNextProjects.includes(name)) {
+          this.moveProject(name, 'next', 'maybe');
+        } else {
+          console.log(`${colors.red}Project "${name}" not found in NOW or NEXT${colors.reset}`);
+        }
+        break;
+        
+      case 'archive':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli archive <project-name>${colors.reset}`);
+          return;
+        }
+        // Find project and move to vault
+        const categories = ['now', 'next', 'maybe', 'done'];
+        const foundCategory = this.findProjectInCategories(name, categories);
+        if (foundCategory) {
+          this.moveProject(name, foundCategory, 'vault');
+          if (this.state.focus === name) {
+            this.state.focus = null;
+            this.saveState();
+          }
+        } else {
+          console.log(`${colors.red}Project "${name}" not found${colors.reset}`);
+        }
+        break;
+        
+      case 'ls':
+        const category = name || 'now';
+        const projects = this.listProjectsByCategory(category);
+        const categoryEmoji = emojis[category] || '📁';
+        console.log(`${categoryEmoji} Projects in ${category.toUpperCase()}:`);
+        if (projects.length === 0) {
+          console.log(`  ${colors.cyan}(empty)${colors.reset}`);
+        } else {
+          projects.forEach(p => console.log(`  • ${p}`));
+        }
+        break;
+        
+      case 'remind':
+        if (this.state.focus) {
+          console.log(`${emojis.focus} You're working on: ${this.state.focus}`);
+        } else {
+          const remindNowProjects = this.listProjectsByCategory('now');
+          if (remindNowProjects.length > 0) {
+            console.log(`${emojis.now} Active projects: ${remindNowProjects.join(', ')}`);
+            console.log(`${colors.cyan}Try: ./cli focus <project-name>${colors.reset}`);
+          } else {
+            console.log(`${emojis.thinking} No active projects. Try: ./cli ls next`);
+          }
+        }
+        break;
+        
+      case 'today':
+        console.log(`${colors.bright}${emojis.focus} Today's Focus${colors.reset}\n`);
+        if (this.state.focus) {
+          console.log(`${emojis.now} Current Focus: ${this.state.focus}`);
+        } else {
+          console.log(`${emojis.thinking} No focus set yet`);
+        }
+        
+        const todayNowProjects = this.listProjectsByCategory('now');
+        const todayNextProjects = this.listProjectsByCategory('next');
+        
+        console.log(`\n${colors.yellow}Quick Actions:${colors.reset}`);
+        if (todayNowProjects.length > 0) {
+          console.log(`  ${colors.green}./cli focus ${todayNowProjects[0]}${colors.reset} - Set focus`);
+        }
+        if (todayNextProjects.length > 0) {
+          console.log(`  ${colors.blue}./cli start ${todayNextProjects[0]}${colors.reset} - Begin work`);
+        }
+        console.log(`  ${colors.cyan}./cli status${colors.reset} - See all projects`);
+        break;
+        
+      case 'examples':
+        console.log(`
+${colors.bright}Usage Examples${colors.reset}
+
+${colors.yellow}Starting Your Day:${colors.reset}
+  ./cli today              # See what's on your plate
+  ./cli focus myproject    # Set your focus
+  
+${colors.yellow}Managing Projects:${colors.reset}
+  ./cli onboard newproject # Move from exploration to NEXT
+  ./cli start myproject    # Move from NEXT to NOW
+  ./cli pause oldproject   # Move to MAYBE when stuck
+  ./cli ship myproject     # Celebrate completion!
+  
+${colors.yellow}Quick Status Checks:${colors.reset}
+  ./cli s                  # Quick status
+  ./cli remind             # "What am I working on?"
+  ./cli ls next            # What's ready to work on?
+  
+${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
+  ./cli ?                  # Quick help
+  ./cli cheat              # Command reference card
+`);
+        break;
+
+      case 'done':
+        const doneProjects = this.listProjectsByCategory('done');
+        console.log(`${colors.green}${emojis.done} All DONE Projects (${doneProjects.length}):${colors.reset}\n`);
+        
+        if (doneProjects.length === 0) {
+          console.log(`  ${colors.cyan}No completed projects yet${colors.reset}`);
+          console.log(`  ${colors.yellow}💡 Use: ./cli ship <project-name> to mark projects as done${colors.reset}`);
+        } else {
+          doneProjects.forEach((project, index) => {
+            const marker = this.state.focus === project ? ' ← FOCUS' : '';
+            const projectData = this.index.projects[project];
+            const lastModified = projectData ? new Date(projectData.lastModified).toLocaleDateString() : '';
+            console.log(`  ${index + 1}. ${project}${colors.yellow}${marker}${colors.reset} ${colors.cyan}(completed ${lastModified})${colors.reset}`);
+          });
+          
+          console.log(`\n${colors.cyan}💡 To reactivate: ./cli start <project-name>${colors.reset}`);
+          console.log(`${colors.magenta}💡 To archive: ./cli archive <project-name>${colors.reset}`);
+          console.log(`${colors.red}💡 To bury: ./cli bury <project-name>${colors.reset}`);
+        }
+        break;
+
+      case 'graveyard':
+        const graveyardProjects = this.listProjectsByCategory('graveyard');
+        console.log(`${colors.red}${emojis.graveyard} All BURIED Projects (${graveyardProjects.length}):${colors.reset}\n`);
+        
+        if (graveyardProjects.length === 0) {
+          console.log(`  ${colors.cyan}No buried projects${colors.reset}`);
+          console.log(`  ${colors.yellow}💡 Use: ./cli bury <project-name> to bury failed projects${colors.reset}`);
+        } else {
+          graveyardProjects.forEach((project, index) => {
+            const projectData = this.index.projects[project];
+            const lastModified = projectData ? new Date(projectData.lastModified).toLocaleDateString() : 'Unknown';
+            console.log(`  ${index + 1}. ${project} ${colors.cyan}(buried ${lastModified})${colors.reset}`);
+          });
+          
+          console.log(`\n${colors.cyan}💡 To resurrect to NEXT: ./cli start <project-name>${colors.reset}`);
+          console.log(`${colors.green}💡 To resurrect to NOW: ./cli start <project-name>${colors.reset}`);
+          console.log(`${colors.magenta}💡 To pause in MAYBE: ./cli start <project-name> then ./cli pause <project-name>${colors.reset}`);
+          console.log(`${colors.red}💡 To delete permanently: ./cli delete <project-name> --confirm${colors.reset}`);
+        }
+        break;
+        
+      case 'cd':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli cd <project-name>${colors.reset}`);
+          return;
+        }
+        // Find project location and show cd command
+        const allCategories = ['now', 'next', 'maybe', 'done', 'vault', 'funeral', 'graveyard'];
+        const cdFoundCategory = this.findProjectInCategories(name, allCategories);
+        if (cdFoundCategory) {
+          const projectPath = this.getProjectPath(name, cdFoundCategory);
+          console.log(`${colors.green}cd "${projectPath}"${colors.reset}`);
+        } else {
+          console.log(`${colors.red}Project "${name}" not found${colors.reset}`);
+        }
+        break;
+        
+      case 'fail':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli fail <project-name>${colors.reset}`);
+          return;
+        }
+        // Find project and move to funeral for analysis
+        const failCategories = ['now', 'next', 'maybe'];
+        let failFound = false;
+        for (const cat of failCategories) {
+          const projects = this.listProjectsByCategory(cat);
+          if (projects.includes(name)) {
+            this.moveProject(name, cat, 'funeral');
+            if (this.state.focus === name) {
+              this.state.focus = null;
+              this.saveState();
+            }
+            console.log(`${emojis.funeral} "${name}" moved to funeral for analysis`);
+            console.log(`${colors.cyan}When ready, use: ./cli analyze ${name}${colors.reset}`);
+            failFound = true;
+            break;
+          }
+        }
+        if (!failFound) {
+          console.log(`${colors.red}Project "${name}" not found in active categories${colors.reset}`);
+        }
+        break;
+        
+      case 'analyze':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli analyze <project-name>${colors.reset}`);
+          return;
+        }
+        const funeralProjects = this.listProjectsByCategory('funeral');
+        if (funeralProjects.includes(name)) {
+          console.log(`${emojis.analysis} Starting post-mortem analysis for "${name}"`);
+          console.log(`${colors.yellow}📋 Analysis checklist:${colors.reset}`);
+          console.log(`  • What went wrong?`);
+          console.log(`  • What was learned?`);
+          console.log(`  • What would you do differently?`);
+          console.log(`  • Any salvageable parts/ideas?`);
+          console.log(`\n${colors.cyan}After analysis, run: ./cli bury ${name}${colors.reset}`);
+        } else {
+          console.log(`${colors.red}Project "${name}" not found in funeral${colors.reset}`);
+        }
+        break;
+        
+      case 'bury':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli bury <project-name>${colors.reset}`);
+          return;
+        }
+        
+        // First check if it's in funeral (normal workflow)
+        const buryProjects = this.listProjectsByCategory('funeral');
+        if (buryProjects.includes(name)) {
+          this.moveProject(name, 'funeral', 'graveyard');
+          console.log(`${emojis.graveyard} "${name}" laid to rest in graveyard`);
+          console.log(`${colors.green}Analysis complete. Lessons learned archived.${colors.reset}`);
+        } else {
+          // Allow burying from any category (bypass analysis)
+          const buryCategories = ['now', 'next', 'maybe', 'done'];
+          let buryFound = false;
+          for (const cat of buryCategories) {
+            const projects = this.listProjectsByCategory(cat);
+            if (projects.includes(name)) {
+              this.moveProject(name, cat, 'graveyard');
+              console.log(`${emojis.graveyard} "${name}" buried directly (no analysis)`);
+              console.log(`${colors.yellow}Skipped analysis - use ./cli fail + ./cli analyze for learning${colors.reset}`);
+              if (this.state.focus === name) {
+                this.state.focus = null;
+                this.saveState();
+              }
+              buryFound = true;
+              break;
+            }
+          }
+          if (!buryFound) {
+            console.log(`${colors.red}Project "${name}" not found${colors.reset}`);
+          }
+        }
+        break;
+        
+      case 'delete':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli delete <project-name>${colors.reset}`);
+          console.log(`${colors.cyan}Or: ./cli delete <project-name> --confirm${colors.reset}`);
+          return;
+        }
+        
+        const isConfirmed = args[2] === '--confirm';
+        const deleteCategories = ['now', 'next', 'maybe', 'done', 'funeral', 'graveyard', 'vault'];
+        const deleteFoundCategory = this.findProjectInCategories(name, deleteCategories);
+        
+        if (deleteFoundCategory) {
+          const projectPath = this.getProjectPath(name, deleteFoundCategory);
+          
+          if (!isConfirmed) {
+            // First step: Show warning and require confirmation flag
+            console.log(`${colors.yellow}⚠️  This will PERMANENTLY DELETE "${name}" and all its files!${colors.reset}`);
+            console.log(`${colors.cyan}📁 Location: ${projectPath}${colors.reset}`);
+            console.log(`${colors.magenta}💡 Alternative: ./cli archive ${name} (keeps files for reference)${colors.reset}`);
+            console.log(`\n${colors.red}To confirm deletion, run:${colors.reset}`);
+            console.log(`${colors.bright}./cli delete ${name} --confirm${colors.reset}`);
+            return;
+          }
+          
+          // Second step: Actually delete with confirmation flag
+          try {
+            execSync(`rm -rf "${projectPath}"`);
+            
+            // Remove from project index
+            this.removeFromIndex(name);
+            
+            // Clear focus if this was the focused project
+            if (this.state.focus === name) {
+              this.state.focus = null;
+              this.saveState();
+            }
+            
+            console.log(`${colors.red}🗑️  "${name}" permanently deleted${colors.reset}`);
+            console.log(`${colors.green}✅ Removed from project index${colors.reset}`);
+            
+          } catch (error) {
+            console.log(`${colors.red}Failed to delete project: ${error.message}${colors.reset}`);
+            console.log(`${colors.cyan}💡 Try: ./cli archive ${name} (safer option)${colors.reset}`);
+          }
+        } else {
+          console.log(`${colors.red}Project "${name}" not found${colors.reset}`);
+        }
+        break;
+        
+      case 'create':
+        if (!name) {
+          console.log(`${colors.red}Usage: ./cli create <project-name>${colors.reset}`);
+          return;
+        }
+        
+        // Check if project name already exists anywhere
+        if (this.projectExists(name)) {
+          const existingLocation = this.findProjectLocation(name);
+          console.log(`${colors.red}Project "${name}" already exists in ${existingLocation.toUpperCase()}${colors.reset}`);
+          console.log(`${colors.cyan}Use: ./cli rename ${name} ${name}-v2${colors.reset}`);
+          return;
+        }
+        
+        // Create project directory in NEXT
+        const newProjectPath = this.getProjectPath(name, 'next');
+        fs.mkdirSync(newProjectPath, { recursive: true });
+        
+        // Register in project index
+        this.registerProject(name, 'next', {
+          createdAt: new Date().toISOString()
+        });
+        
+        console.log(`${emojis.success} Created new project "${name}" in NEXT`);
+        console.log(`${colors.cyan}Next: ./cli start ${name}${colors.reset}`);
+        break;
+        
+      case 'rename':
+        const oldName = name;
+        const newName = args[2];
+        if (!oldName || !newName) {
+          console.log(`${colors.red}Usage: ./cli rename <old-name> <new-name>${colors.reset}`);
+          return;
+        }
+        
+        // Check if old project exists
+        if (!this.projectExists(oldName)) {
+          console.log(`${colors.red}Project "${oldName}" not found${colors.reset}`);
+          return;
+        }
+        
+        // Check if new name already exists
+        if (this.projectExists(newName)) {
+          console.log(`${colors.red}Project "${newName}" already exists${colors.reset}`);
+          return;
+        }
+        
+        const projectCategory = this.findProjectLocation(oldName);
+        const oldPath = this.getProjectPath(oldName, projectCategory);
+        const newPath = this.getProjectPath(newName, projectCategory);
+        
+        // Rename directory
+        try {
+          execSync(`mv "${oldPath}" "${newPath}"`);
+        } catch (error) {
+          console.log(`${colors.red}Failed to rename project: ${error.message}${colors.reset}`);
+          return;
+        }
+        
+        // Update project index
+        const projectData = this.index.projects[oldName];
+        delete this.index.projects[oldName];
+        this.index.projects[newName] = {
+          ...projectData,
+          lastModified: new Date().toISOString(),
+          path: newPath
+        };
+        this.saveProjectIndex();
+        
+        // Update focus if it was the focused project
+        if (this.state.focus === oldName) {
+          this.state.focus = newName;
+        }
+        
+        // Update completion history if it exists
+        if (this.state.completionHistory) {
+          this.state.completionHistory.forEach(entry => {
+            if (entry.project === oldName) {
+              entry.project = newName;
+            }
+          });
+        }
+        
+        this.saveState();
+        console.log(`${emojis.success} Renamed "${oldName}" to "${newName}"`);
+        break;
+        
+      case 'sync':
+        console.log(`${emojis.analysis} Syncing project index with filesystem...`);
+        this.syncProjectIndex();
+        break;
+        
+      default:
+        console.log(`${colors.red}Unknown command: ${cmd}${colors.reset}`);
+        console.log(`${colors.cyan}Try: ./cli help${colors.reset}`);
+    }
+  }
+}
+
+// Make it executable
+const manager = new PortfolioManager();
+manager.run();

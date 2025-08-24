@@ -1,0 +1,211 @@
+name: Weekly Project Health Check
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # Weekly on Monday 10AM UTC
+  workflow_dispatch:      # Manual trigger
+    inputs:
+      create_issue:
+        description: 'Create GitHub issue with health report'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  HEALTH_REPORT_PATH: 'health-report.md'
+  TRENDS_REPORT_PATH: 'trends-analysis.md'
+
+jobs:
+  health-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 50  # Get recent history for trend analysis
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install -g @anthropic/claude-code
+    
+    - name: Run automated health checks
+      id: health-metrics
+      run: |
+        echo "Running project health checks..."
+        
+        # Run built-in health check if available
+        if npm run check:health --if-present; then
+          echo "✅ Built-in health check passed"
+          echo "health_check_status=passed" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ Built-in health check failed or not available"
+          echo "health_check_status=failed" >> $GITHUB_OUTPUT
+        fi
+        
+        # Collect metrics
+        echo "📊 Collecting project metrics..."
+        
+        # File count and sizes
+        file_count=$(find src -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" 2>/dev/null | wc -l)
+        largest_file=$(find src -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -exec wc -l {} + 2>/dev/null | sort -nr | head -1 | awk '{print $1}' || echo "0")
+        oversized_files=$(find src -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -exec wc -l {} + 2>/dev/null | awk '$1 > 300 {count++} END {print count+0}')
+        
+        # TODO/FIXME count
+        todo_count=$(grep -r "TODO\|FIXME\|HACK" src/ 2>/dev/null | wc -l || echo "0")
+        
+        # Utils sprawl check
+        utils_files=$(find src -path "*/util*" -name "*.js" -o -path "*/util*" -name "*.jsx" -o -path "*/util*" -name "*.ts" -o -path "*/util*" -name "*.tsx" 2>/dev/null | wc -l)
+        
+        echo "file_count=$file_count" >> $GITHUB_OUTPUT
+        echo "largest_file=$largest_file" >> $GITHUB_OUTPUT
+        echo "oversized_files=$oversized_files" >> $GITHUB_OUTPUT
+        echo "todo_count=$todo_count" >> $GITHUB_OUTPUT
+        echo "utils_files=$utils_files" >> $GITHUB_OUTPUT
+        
+        # Determine overall health status
+        critical_issues=0
+        if [ "$oversized_files" -gt 0 ]; then critical_issues=$((critical_issues + 1)); fi
+        if [ "$todo_count" -gt 20 ]; then critical_issues=$((critical_issues + 1)); fi
+        if [ "$utils_files" -gt 8 ]; then critical_issues=$((critical_issues + 1)); fi
+        
+        if [ "$critical_issues" -eq 0 ]; then
+          echo "overall_health=good" >> $GITHUB_OUTPUT
+        elif [ "$critical_issues" -le 2 ]; then
+          echo "overall_health=warning" >> $GITHUB_OUTPUT
+        else
+          echo "overall_health=critical" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Generate AI Health Analysis
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "🤖 Generating AI-powered health analysis..."
+        
+        # Generate comprehensive health report
+        claude-code --prompt-file .claude/prompts/health-check.md \
+                   --config .claude/config.json \
+                   --output-file "$HEALTH_REPORT_PATH"
+        
+        # Generate trends analysis
+        claude-code --prompt-file .claude/prompts/trends-analysis.md \
+                   --config .claude/config.json \
+                   --output-file "$TRENDS_REPORT_PATH"
+    
+    - name: Update project learning files
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "📚 Updating learning documentation..."
+        
+        # Update victories if health is good
+        if [ "${{ steps.health-metrics.outputs.overall_health }}" = "good" ]; then
+          claude-code --prompt-file .claude/prompts/capture-victories.md \
+                     --config .claude/config.json
+        fi
+        
+        # Update triggers if issues detected
+        if [ "${{ steps.health-metrics.outputs.overall_health }}" != "good" ]; then
+          claude-code --prompt-file .claude/prompts/update-triggers.md \
+                     --config .claude/config.json
+        fi
+    
+    - name: Create comprehensive health report
+      run: |
+        cat << 'EOF' > final-health-report.md
+        # 📊 Weekly Health Report - $(date +"%Y-%m-%d")
+        
+        ## 🎯 Overall Health Status: ${{ steps.health-metrics.outputs.overall_health == 'good' && '🟢 HEALTHY' || steps.health-metrics.outputs.overall_health == 'warning' && '🟡 NEEDS ATTENTION' || '🔴 CRITICAL' }}
+        
+        ## 📈 Key Metrics
+        
+        | Metric | Value | Status |
+        |--------|-------|--------|
+        | Total Files | ${{ steps.health-metrics.outputs.file_count }} | ${{ steps.health-metrics.outputs.file_count < 25 && '✅' || '⚠️' }} |
+        | Largest File | ${{ steps.health-metrics.outputs.largest_file }} lines | ${{ steps.health-metrics.outputs.largest_file < 300 && '✅' || '🔴' }} |
+        | Oversized Files (>300 lines) | ${{ steps.health-metrics.outputs.oversized_files }} | ${{ steps.health-metrics.outputs.oversized_files == 0 && '✅' || '🔴' }} |
+        | TODO/FIXME/HACK Count | ${{ steps.health-metrics.outputs.todo_count }} | ${{ steps.health-metrics.outputs.todo_count < 10 && '✅' || steps.health-metrics.outputs.todo_count < 20 && '⚠️' || '🔴' }} |
+        | Utils Files | ${{ steps.health-metrics.outputs.utils_files }} | ${{ steps.health-metrics.outputs.utils_files < 5 && '✅' || steps.health-metrics.outputs.utils_files < 8 && '⚠️' || '🔴' }} |
+        | Built-in Health Check | ${{ steps.health-metrics.outputs.health_check_status }} | ${{ steps.health-metrics.outputs.health_check_status == 'passed' && '✅' || '⚠️' }} |
+        
+        ## 🤖 AI Analysis
+        
+        EOF
+        
+        # Append AI-generated health report if it exists
+        if [ -f "$HEALTH_REPORT_PATH" ]; then
+          echo "### Detailed Health Analysis" >> final-health-report.md
+          cat "$HEALTH_REPORT_PATH" >> final-health-report.md
+          echo "" >> final-health-report.md
+        fi
+        
+        # Append trends analysis if it exists
+        if [ -f "$TRENDS_REPORT_PATH" ]; then
+          echo "### Trends Analysis" >> final-health-report.md
+          cat "$TRENDS_REPORT_PATH" >> final-health-report.md
+          echo "" >> final-health-report.md
+        fi
+        
+        cat << 'EOF' >> final-health-report.md
+        
+        ## 🎯 Recommended Actions
+        
+        ### Immediate (This Week)
+        ${{ steps.health-metrics.outputs.oversized_files > 0 && '- 🔴 **CRITICAL**: Split oversized files immediately' || '' }}
+        ${{ steps.health-metrics.outputs.todo_count > 20 && '- ⚠️ Address high TODO/FIXME count' || '' }}
+        ${{ steps.health-metrics.outputs.utils_files > 8 && '- ⚠️ Review and consolidate utility files' || '' }}
+        
+        ### This Sprint
+        - Review and update documentation
+        - Run manual health checks daily
+        - Consider refactoring patterns
+        
+        ### Ongoing
+        - Maintain file size discipline
+        - Regular scope review sessions
+        - Update learning documentation
+        
+        ## 📅 Next Health Check: $(date -d "+7 days" +"%Y-%m-%d")
+        
+        ---
+        *Generated automatically by GitHub Actions and Claude Code*
+        EOF
+    
+    - name: Create or Update Health Issue
+      if: github.event.inputs.create_issue != 'false'
+      uses: actions-ecosystem/action-create-issue@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        title: '📊 Weekly Health Report - ${{ steps.health-metrics.outputs.overall_health == "good" && "🟢 Healthy" || steps.health-metrics.outputs.overall_health == "warning" && "🟡 Needs Attention" || "🔴 Critical Issues" }}'
+        body_path: final-health-report.md
+        labels: |
+          health-check
+          automated
+          ${{ steps.health-metrics.outputs.overall_health }}
+    
+    - name: Archive health reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: health-reports-${{ github.run_number }}
+        path: |
+          final-health-report.md
+          health-report.md
+          trends-analysis.md
+        retention-days: 90
+    
+    - name: Update repository health badge
+      if: steps.health-metrics.outputs.overall_health == 'good'
+      run: |
+        echo "🟢 Project health is good - consider updating README badge"
+        # Could integrate with shields.io or similar service here

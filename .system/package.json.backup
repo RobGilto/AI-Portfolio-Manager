@@ -1,0 +1,51 @@
+{
+  "name": "ai-portfolio",
+  "version": "1.0.0",
+  "description": "Disciplined AI portfolio system organized around lifecycle stages and development discipline",
+  "private": true,
+  "scripts": {
+    "health:all": "./scripts/daily-health",
+    "health:active": "for project in active/*; do [ -d \"$project\" ] && cd \"$project\" && npm run check:health 2>/dev/null || echo \"No health check in $project\"; cd - >/dev/null; done",
+    "health:dev": "for project in dev/*; do [ -d \"$project\" ] && cd \"$project\" && npm run check:health 2>/dev/null || echo \"No health check in $project\"; cd - >/dev/null; done",
+    "health:exploration": "for project in exploration/*; do [ -d \"$project\" ] && cd \"$project\" && npm run check:health 2>/dev/null || echo \"No health check in $project\"; cd - >/dev/null; done",
+    "check:size": "find . -name '*.js' -o -name '*.ts' -o -name '*.jsx' -o -name '*.tsx' -o -name '*.py' | grep -v node_modules | grep -v '.git' | xargs wc -l | sort -nr | head -20",
+    "check:files-over-250": "find . -name '*.js' -o -name '*.ts' -o -name '*.jsx' -o -name '*.tsx' -o -name '*.py' | grep -v node_modules | grep -v '.git' | xargs wc -l | awk '$1 > 250 {print $1, $2}' | sort -nr",
+    "check:dependencies": "find . -name 'package.json' | grep -v node_modules | xargs grep -l '\"dependencies\"\\|\"devDependencies\"' | while read f; do echo \"=== $f ===\"; node -e \"const pkg=require('./$f'); const deps=[...Object.keys(pkg.dependencies||{}), ...Object.keys(pkg.devDependencies||{})]; console.log('Count:', deps.length); if(deps.length > 15) console.log('⚠️ High dependency count'); console.log(deps.slice(0,5).join(', '), deps.length > 5 ? '...' : '');\" 2>/dev/null || echo 'Error reading'; done",
+    "session:start": "echo \"📋 Session Started: $(date)\" >> .session.log && echo \"Session objective: ${1:-'No objective specified'}\" >> .session.log",
+    "session:end": "echo \"✅ Session Ended: $(date)\" >> .session.log && echo \"\" >> .session.log",
+    "session:log": "tail -20 .session.log 2>/dev/null || echo 'No session log found'",
+    "new:project": "./scripts/new-project",
+    "move:project": "./scripts/project-move",
+    "help": "node ./scripts/help.js",
+    "aliases": "source ./scripts/aliases.sh",
+    "workspace:status": "echo \"Portfolio Status Report\" && echo \"======================\" && echo \"Active: $(ls active/ 2>/dev/null | wc -l) projects\" && echo \"Development: $(ls dev/ 2>/dev/null | wc -l) projects\" && echo \"Exploration: $(ls exploration/ 2>/dev/null | wc -l) projects\" && echo \"Paused: $(ls paused/ 2>/dev/null | wc -l) projects\" && echo \"Shipped: $(ls shipped/ 2>/dev/null | wc -l) projects\"",
+    "workspace:health": "npm run health:all",
+    "workspace:clean": "find . -name 'node_modules' -type d -prune -exec rm -rf {} \\; 2>/dev/null && find . -name '.session.log' -delete 2>/dev/null && echo 'Workspace cleaned'",
+    "lint:all": "for project in active/* dev/* exploration/*; do [ -d \"$project\" ] && [ -f \"$project/package.json\" ] && cd \"$project\" && (npm run lint 2>/dev/null || echo \"No lint script in $project\"); cd - >/dev/null; done",
+    "build:all": "for project in active/* dev/* exploration/*; do [ -d \"$project\" ] && [ -f \"$project/package.json\" ] && cd \"$project\" && (npm run build 2>/dev/null || echo \"No build script in $project\"); cd - >/dev/null; done",
+    "test:all": "for project in active/* dev/* exploration/*; do [ -d \"$project\" ] && [ -f \"$project/package.json\" ] && cd \"$project\" && (npm test 2>/dev/null || echo \"No test script in $project\"); cd - >/dev/null; done",
+    "emergency:reset": "echo \"🚨 Emergency Reset Protocol\" && echo \"1. Check session objective: npm run session:log\" && echo \"2. Review file sizes: npm run check:files-over-250\" && echo \"3. Check dependencies: npm run check:dependencies\" && echo \"4. Health check: npm run health:all\" && echo \"5. Clean workspace: npm run workspace:clean\"",
+    "daily:routine": "echo \"🌅 Daily Portfolio Routine\" && npm run workspace:status && echo \"\" && npm run health:all"
+  },
+  "keywords": [
+    "portfolio",
+    "ai-development",
+    "project-management",
+    "workflow",
+    "development-discipline"
+  ],
+  "author": "Robert",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "local"
+  },
+  "workspaces": [
+    "active/*",
+    "dev/*",
+    "exploration/*"
+  ]
+}

@@ -1,0 +1,10 @@
+step 1
+mkdir -p .claude/commands
+mkdir -p .claude/subagents
+mkdir -p docs
+mkdir -p src/frontend
+mkdir -p src/backend
+mkdir -p src/shared
+
+
+

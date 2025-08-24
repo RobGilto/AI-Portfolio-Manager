@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# PURPOSE: Daily health check across portfolio
+
+echo "🏥 Portfolio Health Check"
+echo "=========================="
+echo "Date: $(date)"
+echo ""
+
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+TOTAL_PROJECTS=0
+HEALTHY_PROJECTS=0
+FAILED_PROJECTS=0
+
+# Function to check a single project
+check_project_health() {
+    local project_dir="$1"
+    local project_name="$(basename "$project_dir")"
+    local category="$(basename "$(dirname "$project_dir")")"
+    
+    echo "🔍 Checking: $category/$project_name"
+    
+    if [ ! -f "$project_dir/package.json" ]; then
+        echo "  ⚠️  No package.json found - skipping"
+        return 1
+    fi
+    
+    cd "$project_dir" || {
+        echo "  ❌ Could not access directory"
+        return 1
+    }
+    
+    # Check if health script exists
+    if ! grep -q "check:health" package.json 2>/dev/null; then
+        echo "  ⚠️  No health check script found"
+        return 1
+    fi
+    
+    # Run health check
+    if npm run check:health > /dev/null 2>&1; then
+        echo "  ✅ Healthy"
+        return 0
+    else
+        echo "  ❌ Health check failed"
+        return 1
+    fi
+}
+
+# Check active projects
+echo "📋 ACTIVE PROJECTS:"
+echo "-------------------"
+if [ -d "$BASE_DIR/active" ]; then
+    for project in "$BASE_DIR/active"/*; do
+        if [ -d "$project" ]; then
+            TOTAL_PROJECTS=$((TOTAL_PROJECTS + 1))
+            if check_project_health "$project"; then
+                HEALTHY_PROJECTS=$((HEALTHY_PROJECTS + 1))
+            else
+                FAILED_PROJECTS=$((FAILED_PROJECTS + 1))
+            fi
+        fi
+    done
+else
+    echo "  No active directory found"
+fi
+
+echo ""
+
+# Check exploration projects
+echo "🧪 EXPLORATION PROJECTS:"
+echo "------------------------"
+if [ -d "$BASE_DIR/exploration" ]; then
+    found_projects=false
+    for project in "$BASE_DIR/exploration"/*; do
+        if [ -d "$project" ] && [ "$(basename "$project")" != "README.md" ]; then
+            found_projects=true
+            TOTAL_PROJECTS=$((TOTAL_PROJECTS + 1))
+            if check_project_health "$project"; then
+                HEALTHY_PROJECTS=$((HEALTHY_PROJECTS + 1))
+            else
+                FAILED_PROJECTS=$((FAILED_PROJECTS + 1))
+            fi
+        fi
+    done
+    if [ "$found_projects" = false ]; then
+        echo "  No projects found in exploration/"
+    fi
+else
+    echo "  No exploration directory found"
+fi
+
+echo ""
+
+# Check development projects
+echo "🛠️  DEVELOPMENT PROJECTS:"
+echo "------------------------"
+if [ -d "$BASE_DIR/dev" ]; then
+    found_projects=false
+    for project in "$BASE_DIR/dev"/*; do
+        if [ -d "$project" ] && [ "$(basename "$project")" != "README.md" ]; then
+            found_projects=true
+            TOTAL_PROJECTS=$((TOTAL_PROJECTS + 1))
+            if check_project_health "$project"; then
+                HEALTHY_PROJECTS=$((HEALTHY_PROJECTS + 1))
+            else
+                FAILED_PROJECTS=$((FAILED_PROJECTS + 1))
+            fi
+        fi
+    done
+    if [ "$found_projects" = false ]; then
+        echo "  No projects found in dev/"
+    fi
+else
+    echo "  No dev directory found"
+fi
+
+echo ""
+
+# Summary
+echo "📊 HEALTH SUMMARY:"
+echo "=================="
+echo "Total projects checked: $TOTAL_PROJECTS"
+echo "Healthy projects: $HEALTHY_PROJECTS"
+echo "Failed projects: $FAILED_PROJECTS"
+
+if [ $TOTAL_PROJECTS -eq 0 ]; then
+    echo "⚠️  No projects found to check"
+elif [ $FAILED_PROJECTS -eq 0 ]; then
+    echo "🎉 All projects are healthy!"
+else
+    echo "⚠️  $FAILED_PROJECTS project(s) need attention"
+fi
+
+echo ""
+echo "💡 RECOMMENDATIONS:"
+echo "==================="
+if [ $FAILED_PROJECTS -gt 0 ]; then
+    echo "• Review failed projects for missing health scripts"
+    echo "• Ensure all projects follow the portfolio standards"
+    echo "• Consider moving stale projects to paused/ or archive/"
+fi
+
+echo "• Run individual health checks: npm run check:health"
+echo "• Check file sizes: scripts/check-file-sizes (if available)"
+echo "• Review CLAUDE.md files for project-specific guidance"
+
+# Return appropriate exit code
+if [ $FAILED_PROJECTS -eq 0 ]; then
+    exit 0
+else
+    exit 1
+fi

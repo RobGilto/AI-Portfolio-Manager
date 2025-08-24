@@ -1,0 +1,103 @@
+{
+  "projects": {
+    "test-index-system": {
+      "category": "graveyard",
+      "createdAt": "2025-08-24T12:31:02.706Z",
+      "lastModified": "2025-08-24T12:48:35.733Z",
+      "path": "/home/robert/AIPortfolio/.graveyard/test-index-system"
+    },
+    "claudeOperationV3": {
+      "category": "done",
+      "createdAt": "2025-08-24T12:31:52.517Z",
+      "lastModified": "2025-08-24T13:00:22.894Z",
+      "path": "/home/robert/AIPortfolio/.done/claudeOperationV3",
+      "note": "Added during sync"
+    },
+    "test-clash": {
+      "category": "now",
+      "createdAt": "2025-08-24T12:31:52.517Z",
+      "lastModified": "2025-08-24T13:01:56.158Z",
+      "path": "/home/robert/AIPortfolio/.now/test-clash",
+      "note": "Added during sync"
+    },
+    "runequest-solo-cli": {
+      "category": "now",
+      "createdAt": "2025-08-24T12:31:52.517Z",
+      "lastModified": "2025-08-24T12:57:03.453Z",
+      "path": "/home/robert/AIPortfolio/.now/runequest-solo-cli",
+      "note": "Added during sync"
+    },
+    "new-project-test": {
+      "category": "graveyard",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.graveyard/new-project-test",
+      "note": "Added during sync"
+    },
+    "testing-app-project": {
+      "category": "graveyard",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.graveyard/testing-app-project",
+      "note": "Added during sync"
+    },
+    "active": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/active",
+      "note": "Added during sync"
+    },
+    "archive": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/archive",
+      "note": "Added during sync"
+    },
+    "dev": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/dev",
+      "note": "Added during sync"
+    },
+    "exploration": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/exploration",
+      "note": "Added during sync"
+    },
+    "neutron-ai-pkm": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/neutron-ai-pkm",
+      "note": "Added during sync"
+    },
+    "paused": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/paused",
+      "note": "Added during sync"
+    },
+    "prod": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/prod",
+      "note": "Added during sync"
+    },
+    "shipped": {
+      "category": "vault",
+      "createdAt": "2025-08-24T12:31:52.518Z",
+      "lastModified": "2025-08-24T12:31:52.518Z",
+      "path": "/home/robert/AIPortfolio/.vault/shipped",
+      "note": "Added during sync"
+    }
+  },
+  "lastUpdated": "2025-08-24T13:01:56.159Z",
+  "version": "1.0"
+}
