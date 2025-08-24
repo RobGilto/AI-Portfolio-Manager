@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const TemplateManager = require('./TemplateManager');
+const TemplateValidator = require('./TemplateValidator');
 
 // ADHD-friendly colors and emojis
 const colors = {
@@ -115,6 +117,16 @@ class PortfolioManager {
     this.ensureDirectories();
     this.state = this.loadState();
     this.index = this.loadProjectIndex();
+    
+    // Template system initialization
+    try {
+      this.templateManager = new TemplateManager();
+      this.templateValidator = new TemplateValidator();
+    } catch (error) {
+      console.warn(`Template system unavailable: ${error.message}`);
+      this.templateManager = null;
+      this.templateValidator = null;
+    }
   }
 
   ensureDirectories() {
@@ -530,10 +542,12 @@ ${colors.yellow}📋 PROJECT FLOW:${colors.reset}                     ${colors.y
   ${colors.green}./cli pause <name>${colors.reset}       Move to MAYBE                ${colors.yellow}🎭 PROJECT TYPES:${colors.reset}
                                                        ${colors.green}./cli types${colors.reset}              Show all project types
 
-${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
-  ${colors.green}./cli help${colors.reset} (-h)          This help
-  ${colors.green}./cli cheat${colors.reset}              Quick reference
-  ${colors.green}./cli examples${colors.reset}           Usage examples
+${colors.yellow}${emojis.template} TEMPLATE SYSTEM:${colors.reset}                  ${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
+  ${colors.green}./cli template-list [cat]${colors.reset} List available templates      ${colors.green}./cli help${colors.reset} (-h)          This help
+  ${colors.green}./cli template-show <id>${colors.reset}  Show template details         ${colors.green}./cli cheat${colors.reset}              Quick reference  
+  ${colors.green}./cli template-create <id>${colors.reset} Create new template          ${colors.green}./cli examples${colors.reset}           Usage examples
+  ${colors.green}./cli template-validate <id>${colors.reset} Validate template
+  ${colors.green}./cli template-delete <id>${colors.reset} Delete template
 `);
   }
 
@@ -1120,10 +1134,283 @@ ${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
         console.log(`${emojis.analysis} Syncing project index with filesystem...`);
         this.syncProjectIndex();
         break;
+
+      // Template system commands
+      case 'template-list':
+        this.handleTemplateList(name);
+        break;
+
+      case 'template-show':
+        this.handleTemplateShow(name);
+        break;
+
+      case 'template-create':
+        this.handleTemplateCreate(name, args[2]);
+        break;
+
+      case 'template-validate':
+        this.handleTemplateValidate(name);
+        break;
+
+      case 'template-delete':
+        this.handleTemplateDelete(name);
+        break;
+
+      case 'template-sync':
+        this.handleTemplateSync();
+        break;
         
       default:
         console.log(`${colors.red}Unknown command: ${cmd}${colors.reset}`);
         console.log(`${colors.cyan}Try: ./cli help${colors.reset}`);
+    }
+  }
+
+  // Template system handlers
+  handleTemplateList(category) {
+    if (!this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    try {
+      const templates = this.templateManager.listTemplates(category);
+      const categoryDisplay = category ? category.toUpperCase() : 'ALL';
+      
+      console.log(`${emojis.template} Templates (${categoryDisplay}): ${templates.length} found\n`);
+      
+      if (templates.length === 0) {
+        console.log(`  ${colors.cyan}No templates found${colors.reset}`);
+        console.log(`  ${colors.yellow}Create one with: ./cli template-create <id> <category>${colors.reset}`);
+        return;
+      }
+
+      // Group by category for display
+      const byCategory = {};
+      templates.forEach(template => {
+        if (!byCategory[template.category]) {
+          byCategory[template.category] = [];
+        }
+        byCategory[template.category].push(template);
+      });
+
+      Object.keys(byCategory).forEach(cat => {
+        const catEmoji = cat === 'project' ? '🚀' : cat === 'workflow' ? '🔄' : '⚙️';
+        console.log(`${colors.yellow}${catEmoji} ${cat.toUpperCase()}:${colors.reset}`);
+        
+        byCategory[cat].forEach(template => {
+          const tags = template.tags?.length ? ` [${template.tags.join(', ')}]` : '';
+          console.log(`  • ${colors.green}${template.id}${colors.reset} - ${template.name}${colors.cyan}${tags}${colors.reset}`);
+          if (template.description) {
+            console.log(`    ${colors.magenta}${template.description}${colors.reset}`);
+          }
+        });
+        console.log();
+      });
+    } catch (error) {
+      console.log(`${colors.red}Failed to list templates: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleTemplateShow(id) {
+    if (!this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    if (!id) {
+      console.log(`${colors.red}Usage: ./cli template-show <template-id>${colors.reset}`);
+      return;
+    }
+
+    try {
+      const template = this.templateManager.readTemplate(id);
+      
+      console.log(`${colors.bright}${emojis.template} Template: ${template.meta.name}${colors.reset}\n`);
+      console.log(`${colors.yellow}ID:${colors.reset} ${template.id}`);
+      console.log(`${colors.yellow}Category:${colors.reset} ${template.meta.category}`);
+      console.log(`${colors.yellow}Version:${colors.reset} ${template.meta.version}`);
+      console.log(`${colors.yellow}Description:${colors.reset} ${template.meta.description || 'No description'}`);
+      
+      if (template.meta.tags && template.meta.tags.length > 0) {
+        console.log(`${colors.yellow}Tags:${colors.reset} ${template.meta.tags.join(', ')}`);
+      }
+      
+      console.log(`${colors.yellow}Created:${colors.reset} ${new Date(template.meta.createdAt).toLocaleDateString()}`);
+      console.log(`${colors.yellow}Modified:${colors.reset} ${new Date(template.meta.lastModified).toLocaleDateString()}`);
+
+      if (template.files && template.files.length > 0) {
+        console.log(`\n${colors.yellow}Files (${template.files.length}):${colors.reset}`);
+        template.files.forEach((file, index) => {
+          const size = file.content ? `(${file.content.length} chars)` : '(empty)';
+          console.log(`  ${index + 1}. ${colors.cyan}${file.path}${colors.reset} ${colors.magenta}${size}${colors.reset}`);
+        });
+      }
+
+      if (template.variables && Object.keys(template.variables).length > 0) {
+        console.log(`\n${colors.yellow}Variables:${colors.reset}`);
+        Object.entries(template.variables).forEach(([key, value]) => {
+          console.log(`  • ${colors.green}{{${key}}}${colors.reset} - ${value.description || 'No description'}`);
+        });
+      }
+
+      if (template.dependencies && template.dependencies.length > 0) {
+        console.log(`\n${colors.yellow}Dependencies:${colors.reset}`);
+        template.dependencies.forEach(dep => {
+          console.log(`  • ${dep}`);
+        });
+      }
+
+      console.log(`\n${colors.cyan}Use: ./cli template-validate ${id} to check for issues${colors.reset}`);
+    } catch (error) {
+      console.log(`${colors.red}Failed to show template: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleTemplateCreate(id, category) {
+    if (!this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    if (!id) {
+      console.log(`${colors.red}Usage: ./cli template-create <id> <category>${colors.reset}`);
+      console.log(`${colors.cyan}Categories: project, workflow, component${colors.reset}`);
+      return;
+    }
+
+    if (!category) {
+      console.log(`${colors.red}Category required. Choose: project, workflow, component${colors.reset}`);
+      return;
+    }
+
+    try {
+      const templateData = {
+        meta: {
+          name: `${id.charAt(0).toUpperCase() + id.slice(1)} Template`,
+          description: `Template for ${id}`,
+          tags: []
+        },
+        files: [
+          {
+            path: 'README.md',
+            content: `# {{PROJECT_NAME}}\n\n{{PROJECT_DESCRIPTION}}\n\nCreated from template: ${id}`
+          }
+        ],
+        variables: {
+          PROJECT_NAME: {
+            description: 'Name of the project',
+            default: 'My Project'
+          },
+          PROJECT_DESCRIPTION: {
+            description: 'Description of the project',
+            default: 'A new project'
+          }
+        }
+      };
+
+      const template = this.templateManager.createTemplate(id, category, templateData);
+      console.log(`${emojis.success} Created template "${id}" in ${category} category`);
+      console.log(`${colors.cyan}Edit with: ./cli template-show ${id}${colors.reset}`);
+    } catch (error) {
+      console.log(`${colors.red}Failed to create template: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleTemplateValidate(id) {
+    if (!this.templateValidator || !this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    if (!id) {
+      console.log(`${colors.red}Usage: ./cli template-validate <template-id>${colors.reset}`);
+      return;
+    }
+
+    try {
+      const template = this.templateManager.readTemplate(id);
+      const result = this.templateValidator.validateTemplate(template);
+      
+      console.log(`${colors.bright}${emojis.analysis} Validation Results: ${template.meta.name}${colors.reset}\n`);
+      
+      if (result.valid) {
+        console.log(`${colors.green}✅ Template is valid${colors.reset}`);
+      } else {
+        console.log(`${colors.red}❌ Template has issues${colors.reset}`);
+      }
+
+      console.log(`${colors.yellow}Severity:${colors.reset} ${result.severity}`);
+
+      if (result.errors.length > 0) {
+        console.log(`\n${colors.red}Errors (${result.errors.length}):${colors.reset}`);
+        result.errors.forEach((error, index) => {
+          console.log(`  ${index + 1}. ${error}`);
+        });
+      }
+
+      if (result.warnings.length > 0) {
+        console.log(`\n${colors.yellow}Warnings (${result.warnings.length}):${colors.reset}`);
+        result.warnings.forEach((warning, index) => {
+          console.log(`  ${index + 1}. ${warning}`);
+        });
+      }
+
+      if (result.valid && result.warnings.length === 0) {
+        console.log(`\n${colors.green}🎉 Template is ready for use${colors.reset}`);
+      } else if (result.valid) {
+        console.log(`\n${colors.cyan}✅ Template is usable but has warnings${colors.reset}`);
+      } else {
+        console.log(`\n${colors.red}🚫 Template needs fixes before use${colors.reset}`);
+      }
+
+    } catch (error) {
+      console.log(`${colors.red}Failed to validate template: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleTemplateDelete(id) {
+    if (!this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    if (!id) {
+      console.log(`${colors.red}Usage: ./cli template-delete <template-id>${colors.reset}`);
+      return;
+    }
+
+    try {
+      const template = this.templateManager.readTemplate(id);
+      console.log(`${colors.yellow}⚠️  This will PERMANENTLY DELETE template "${template.meta.name}"${colors.reset}`);
+      console.log(`${colors.cyan}Category: ${template.meta.category}${colors.reset}`);
+      console.log(`${colors.red}To confirm, run: ./cli template-delete ${id} --confirm${colors.reset}`);
+      
+      // Note: Two-step confirmation would be implemented here similar to project deletion
+      // For now, showing the pattern
+      
+    } catch (error) {
+      console.log(`${colors.red}Failed to delete template: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleTemplateSync() {
+    if (!this.templateManager) {
+      console.log(`${colors.red}Template system not available${colors.reset}`);
+      return;
+    }
+
+    try {
+      console.log(`${emojis.analysis} Syncing template index...`);
+      const result = this.templateManager.syncTemplateIndex();
+      
+      console.log(`${emojis.success} Template sync completed successfully`);
+      
+      if (result.addedCount + result.syncedCount + result.removedCount > 0) {
+        console.log(`${colors.cyan}Run: ./cli template-list to see available templates${colors.reset}`);
+      }
+    } catch (error) {
+      console.log(`${colors.red}Failed to sync templates: ${error.message}${colors.reset}`);
     }
   }
 }

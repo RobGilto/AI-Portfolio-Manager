@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Template Schema",
+  "description": "JSON schema for AI Portfolio template files",
+  "type": "object",
+  "required": ["id", "meta", "files"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique identifier for the template (lowercase, hyphenated)"
+    },
+    "meta": {
+      "type": "object",
+      "required": ["name", "category", "version"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the template"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["project", "workflow", "component"],
+          "description": "Template category"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9-]+)?$",
+          "description": "Semantic version number"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this template provides"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for categorization and search"
+        },
+        "author": {
+          "type": "string",
+          "description": "Template author"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp"
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Files to be created by this template",
+      "items": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path where file should be created"
+          },
+          "content": {
+            "type": "string",
+            "description": "File content with variable substitutions"
+          },
+          "executable": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether file should be executable"
+          }
+        }
+      }
+    },
+    "claudeMd": {
+      "type": "object",
+      "description": "CLAUDE.md integration configuration",
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Content to add to CLAUDE.md"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Variables for CLAUDE.md template substitution"
+        },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Development instructions to add"
+        }
+      }
+    },
+    "variables": {
+      "type": "object",
+      "description": "Template variables and their metadata",
+      "patternProperties": {
+        "^[A-Z_][A-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Variable description"
+            },
+            "default": {
+              "type": "string",
+              "description": "Default value"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether variable is required"
+            },
+            "pattern": {
+              "type": "string",
+              "description": "Validation pattern (regex)"
+            }
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Dependencies required by this template",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "description": "Simple dependency name"
+          },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Dependency name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version requirement"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["npm", "python", "system"],
+                "description": "Dependency type"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "postCreate": {
+      "type": "array",
+      "description": "Commands to run after template creation",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "description": "Shell command to execute"
+          },
+          {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Command to execute"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human readable description"
+              },
+              "optional": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether command is optional"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
