@@ -13,13 +13,6 @@
       "path": "/home/robert/AIPortfolio/.done/claudeOperationV3",
       "note": "Added during sync"
     },
-    "test-clash": {
-      "category": "now",
-      "createdAt": "2025-08-24T12:31:52.517Z",
-      "lastModified": "2025-08-24T13:01:56.158Z",
-      "path": "/home/robert/AIPortfolio/.now/test-clash",
-      "note": "Added during sync"
-    },
     "runequest-solo-cli": {
       "category": "now",
       "createdAt": "2025-08-24T12:31:52.517Z",
@@ -98,6 +91,6 @@
       "note": "Added during sync"
     }
   },
-  "lastUpdated": "2025-08-24T13:01:56.159Z",
+  "lastUpdated": "2025-08-24T21:06:02.302Z",
   "version": "1.0"
 }

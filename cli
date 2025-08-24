@@ -28,7 +28,83 @@ const emojis = {
   energy: '⚡',
   funeral: '⚰️',
   graveyard: '🪦',
-  analysis: '🔬'
+  analysis: '🔬',
+  // Project Types
+  learning: '📚',
+  usecase: '🎯',
+  trial: '🧪',
+  production: '🚀',
+  research: '🔬',
+  template: '📄'
+};
+
+const projectTypes = {
+  learning: {
+    emoji: '📚',
+    name: 'Learning',
+    description: 'Educational projects, tutorials, skill building',
+    defaultLocation: 'next',
+    suggestedTags: ['tutorial', 'practice', 'course'],
+    questions: [
+      'What technology/skill are you learning?',
+      'Is this following a specific course or tutorial?'
+    ]
+  },
+  usecase: {
+    emoji: '🎯',
+    name: 'Use Case',
+    description: 'Practical applications solving real problems',
+    defaultLocation: 'next',
+    suggestedTags: ['practical', 'solution', 'application'],
+    questions: [
+      'What problem does this solve?',
+      'Who is the target user?'
+    ]
+  },
+  trial: {
+    emoji: '🧪',
+    name: 'Trial-Error',
+    description: 'Experimental projects, proof of concepts',
+    defaultLocation: 'next',
+    suggestedTags: ['experiment', 'poc', 'test'],
+    questions: [
+      'What hypothesis are you testing?',
+      'What success criteria will you use?'
+    ]
+  },
+  production: {
+    emoji: '🚀',
+    name: 'Production',
+    description: 'Production-ready applications for real use',
+    defaultLocation: 'next',
+    suggestedTags: ['production', 'deployed', 'stable'],
+    questions: [
+      'What is the expected launch timeline?',
+      'What are the key features for MVP?'
+    ]
+  },
+  research: {
+    emoji: '🔬',
+    name: 'Research',
+    description: 'Investigation projects, analysis work',
+    defaultLocation: 'next',
+    suggestedTags: ['research', 'analysis', 'investigation'],
+    questions: [
+      'What research question are you exploring?',
+      'What methodology will you use?'
+    ]
+  },
+  template: {
+    emoji: '📄',
+    name: 'Template',
+    description: 'Reusable project templates and boilerplates',
+    defaultLocation: 'next',
+    suggestedTags: ['template', 'boilerplate', 'reusable'],
+    questions: [
+      'What type of projects will use this template?',
+      'What technologies does it include?'
+    ]
+  }
 };
 
 class PortfolioManager {
@@ -106,6 +182,86 @@ class PortfolioManager {
       ...metadata
     };
     this.saveProjectIndex();
+  }
+
+  showProjectTypeWizard() {
+    console.log(`\n${colors.bright}${emojis.thinking} Project Type Wizard${colors.reset}`);
+    console.log(`${colors.cyan}Choose the type of project you're creating:${colors.reset}\n`);
+    
+    Object.keys(projectTypes).forEach((key, index) => {
+      const type = projectTypes[key];
+      console.log(`${colors.yellow}${index + 1}.${colors.reset} ${type.emoji} ${colors.bright}${type.name}${colors.reset}`);
+      console.log(`   ${colors.cyan}${type.description}${colors.reset}\n`);
+    });
+    
+    console.log(`${colors.magenta}Enter number (1-${Object.keys(projectTypes).length}) or type to select:${colors.reset}`);
+  }
+
+  parseProjectTypeSelection(input) {
+    const typeKeys = Object.keys(projectTypes);
+    
+    // Handle numeric input
+    const num = parseInt(input);
+    if (num >= 1 && num <= typeKeys.length) {
+      return typeKeys[num - 1];
+    }
+    
+    // Handle text input - find partial match
+    const inputLower = input.toLowerCase();
+    const match = typeKeys.find(key => 
+      key.toLowerCase().includes(inputLower) || 
+      projectTypes[key].name.toLowerCase().includes(inputLower)
+    );
+    
+    return match || null;
+  }
+
+  createProjectWithWizard(name, typeKey) {
+    const type = projectTypes[typeKey];
+    if (!type) {
+      console.log(`${colors.red}Invalid project type${colors.reset}`);
+      return;
+    }
+
+    console.log(`\n${colors.green}Creating ${type.emoji} ${type.name} project: "${name}"${colors.reset}`);
+    
+    // Create project directory
+    const projectPath = this.getProjectPath(name, type.defaultLocation);
+    fs.mkdirSync(projectPath, { recursive: true });
+    
+    // Create a basic README with project type information
+    const readmeContent = `# ${name}
+
+${type.emoji} **Project Type**: ${type.name}
+
+## Description
+${type.description}
+
+## Questions to Consider
+${type.questions.map(q => `- ${q}`).join('\n')}
+
+## Suggested Tags
+${type.suggestedTags.map(tag => `#${tag}`).join(' ')}
+
+---
+*Created: ${new Date().toLocaleDateString()}*
+`;
+    
+    fs.writeFileSync(path.join(projectPath, 'README.md'), readmeContent);
+    
+    // Register project with type metadata
+    this.registerProject(name, type.defaultLocation, {
+      createdAt: new Date().toISOString(),
+      projectType: typeKey,
+      typeName: type.name,
+      typeEmoji: type.emoji,
+      suggestedTags: type.suggestedTags,
+      note: `${type.emoji} ${type.name} project`
+    });
+    
+    console.log(`${colors.green}${emojis.success} Project created in ${type.defaultLocation.toUpperCase()}${colors.reset}`);
+    console.log(`${colors.cyan}${emojis.focus} README.md created with project type guidance${colors.reset}`);
+    console.log(`${colors.yellow}Next: ./cli start ${name} when ready to begin${colors.reset}`);
   }
 
   updateProjectCategory(name, newCategory) {
@@ -242,18 +398,27 @@ class PortfolioManager {
       this.state.completionHistory = [];
     }
 
-    // Sort by completion time (most recent first) and take top 3
+    // Sort by completion time (most recent first) and deduplicate
     const sortedHistory = this.state.completionHistory
       .filter(entry => projects.includes(entry.project))
-      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-      .slice(0, 3);
+      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
+    // Remove duplicates while preserving order (keep most recent completion of each project)
+    const seenProjects = new Set();
+    const uniqueHistory = sortedHistory.filter(entry => {
+      if (seenProjects.has(entry.project)) {
+        return false;
+      }
+      seenProjects.add(entry.project);
+      return true;
+    }).slice(0, 3);
 
     // If we don't have enough history data, just return all available projects (no duplicates)
-    if (sortedHistory.length === 0) {
+    if (uniqueHistory.length === 0) {
       return projects.slice(0, Math.min(3, projects.length));
     }
 
-    return sortedHistory.map(entry => entry.project);
+    return uniqueHistory.map(entry => entry.project);
   }
 
 
@@ -335,7 +500,9 @@ class PortfolioManager {
       } else {
         projects.forEach(project => {
           const marker = this.state.focus === project ? ' ← FOCUS' : '';
-          console.log(`  • ${project}${colors.yellow}${marker}${colors.reset}`);
+          const projectInfo = this.index.projects[project];
+          const typeDisplay = projectInfo?.typeEmoji ? `${projectInfo.typeEmoji} ` : '';
+          console.log(`  • ${typeDisplay}${project}${colors.yellow}${marker}${colors.reset}`);
         });
       }
       console.log();
@@ -355,11 +522,13 @@ ${colors.yellow}🔥 FOCUS COMMANDS:${colors.reset}                    ${colors.
                                                        ${colors.green}./cli delete <name>${colors.reset}      Permanently delete project
 
 ${colors.yellow}📋 PROJECT FLOW:${colors.reset}                     ${colors.yellow}⚰️ FAILURE WORKFLOW:${colors.reset}
-  ${colors.green}./cli create <name>${colors.reset}      Create new project            ${colors.green}./cli fail <name>${colors.reset}        Move failed project to funeral
-  ${colors.green}./cli onboard <name>${colors.reset}     Move project to NEXT         ${colors.green}./cli analyze <name>${colors.reset}     Start post-mortem analysis
-  ${colors.green}./cli start <name>${colors.reset}       Move NEXT → NOW              ${colors.green}./cli bury <name>${colors.reset}        Move to graveyard (skip analysis)
-  ${colors.green}./cli ship <name>${colors.reset}        Move NOW → DONE              ${colors.green}./cli rename <old> <new>${colors.reset} Rename any project
-  ${colors.green}./cli pause <name>${colors.reset}       Move to MAYBE
+  ${colors.green}./cli create <name> [type]${colors.reset} Create new project           ${colors.green}./cli fail <name>${colors.reset}        Move failed project to funeral
+  ${colors.green}./cli wizard <name>${colors.reset}       Create with type wizard      ${colors.green}./cli analyze <name>${colors.reset}     Start post-mortem analysis
+  ${colors.green}./cli onboard <name>${colors.reset}     Move project to NEXT         ${colors.green}./cli bury <name>${colors.reset}        Move to graveyard (skip analysis)
+  ${colors.green}./cli start <name>${colors.reset}       Move NEXT → NOW              ${colors.green}./cli rename <old> <new>${colors.reset} Rename any project
+  ${colors.green}./cli ship <name>${colors.reset}        Move NOW → DONE              
+  ${colors.green}./cli pause <name>${colors.reset}       Move to MAYBE                ${colors.yellow}🎭 PROJECT TYPES:${colors.reset}
+                                                       ${colors.green}./cli types${colors.reset}              Show all project types
 
 ${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
   ${colors.green}./cli help${colors.reset} (-h)          This help
@@ -807,7 +976,8 @@ ${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
         
       case 'create':
         if (!name) {
-          console.log(`${colors.red}Usage: ./cli create <project-name>${colors.reset}`);
+          console.log(`${colors.red}Usage: ./cli create <project-name> [type]${colors.reset}`);
+          console.log(`${colors.cyan}Or use: ./cli wizard - for guided creation${colors.reset}`);
           return;
         }
         
@@ -819,17 +989,71 @@ ${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
           return;
         }
         
-        // Create project directory in NEXT
-        const newProjectPath = this.getProjectPath(name, 'next');
-        fs.mkdirSync(newProjectPath, { recursive: true });
+        const typeArg = args[2];
         
-        // Register in project index
-        this.registerProject(name, 'next', {
-          createdAt: new Date().toISOString()
+        if (typeArg) {
+          // Direct creation with specified type
+          const typeKey = this.parseProjectTypeSelection(typeArg);
+          if (typeKey) {
+            this.createProjectWithWizard(name, typeKey);
+          } else {
+            console.log(`${colors.red}Unknown project type: ${typeArg}${colors.reset}`);
+            console.log(`${colors.cyan}Available types: ${Object.keys(projectTypes).join(', ')}${colors.reset}`);
+            console.log(`${colors.yellow}Use: ./cli wizard - for guided selection${colors.reset}`);
+          }
+        } else {
+          // Legacy create (basic project without type)
+          const newProjectPath = this.getProjectPath(name, 'next');
+          fs.mkdirSync(newProjectPath, { recursive: true });
+          
+          this.registerProject(name, 'next', {
+            createdAt: new Date().toISOString(),
+            note: 'Basic project (no type specified)'
+          });
+          
+          console.log(`${emojis.success} Created basic project "${name}" in NEXT`);
+          console.log(`${colors.yellow}💡 Tip: Use './cli wizard' for typed projects with guidance${colors.reset}`);
+          console.log(`${colors.cyan}Next: ./cli start ${name}${colors.reset}`);
+        }
+        break;
+
+      case 'wizard':
+        const wizardName = name;
+        if (!wizardName) {
+          console.log(`${colors.red}Usage: ./cli wizard <project-name>${colors.reset}`);
+          return;
+        }
+        
+        // Check if project name already exists
+        if (this.projectExists(wizardName)) {
+          const existingLocation = this.findProjectLocation(wizardName);
+          console.log(`${colors.red}Project "${wizardName}" already exists in ${existingLocation.toUpperCase()}${colors.reset}`);
+          return;
+        }
+        
+        // Show wizard and create project with selected type
+        this.showProjectTypeWizard();
+        console.log(`\n${colors.bright}Project name: ${wizardName}${colors.reset}`);
+        console.log(`${colors.magenta}Note: This is interactive mode. In practice, you would select a type.${colors.reset}`);
+        console.log(`${colors.cyan}For now, creating as Learning project. Use: ./cli create ${wizardName} <type>${colors.reset}`);
+        
+        // For demo purposes, create as learning project
+        // In a real interactive CLI, this would wait for user input
+        this.createProjectWithWizard(wizardName, 'learning');
+        break;
+
+      case 'types':
+        console.log(`\n${colors.bright}${emojis.thinking} Available Project Types${colors.reset}\n`);
+        Object.keys(projectTypes).forEach(key => {
+          const type = projectTypes[key];
+          console.log(`${type.emoji} ${colors.bright}${type.name}${colors.reset} (${colors.yellow}${key}${colors.reset})`);
+          console.log(`   ${colors.cyan}${type.description}${colors.reset}`);
+          console.log(`   ${colors.magenta}Tags: ${type.suggestedTags.map(tag => `#${tag}`).join(' ')}${colors.reset}\n`);
         });
-        
-        console.log(`${emojis.success} Created new project "${name}" in NEXT`);
-        console.log(`${colors.cyan}Next: ./cli start ${name}${colors.reset}`);
+        console.log(`${colors.yellow}Usage Examples:${colors.reset}`);
+        console.log(`  ./cli create my-project learning`);
+        console.log(`  ./cli create my-api production`);
+        console.log(`  ./cli wizard my-experiment`);
         break;
         
       case 'rename':
