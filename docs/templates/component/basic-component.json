@@ -1,0 +1,130 @@
+{
+  "id": "basic-component",
+  "meta": {
+    "name": "Basic Component Template",
+    "category": "component",
+    "version": "1.0.0",
+    "description": "Simple reusable component following disciplined development patterns",
+    "tags": ["component", "reusable", "basic", "template"],
+    "author": "AI Portfolio System",
+    "createdAt": "2025-08-24T12:00:00.000Z",
+    "lastModified": "2025-08-24T12:00:00.000Z"
+  },
+  "files": [
+    {
+      "path": "{{COMPONENT_NAME}}.js",
+      "content": "// PURPOSE: {{COMPONENT_PURPOSE}}\n\n/**\n * {{COMPONENT_NAME}} - {{COMPONENT_DESCRIPTION}}\n * \n * @param {Object} props - Component properties\n * @returns {JSX.Element} Rendered component\n */\nfunction {{COMPONENT_NAME}}(props) {\n  const {\n    {{COMPONENT_PROPS}}\n  } = props;\n\n  return (\n    <div className=\"{{COMPONENT_NAME_LOWER}}\">\n      <h2>{{COMPONENT_NAME}}</h2>\n      <p>{{COMPONENT_DESCRIPTION}}</p>\n    </div>\n  );\n}\n\nexport default {{COMPONENT_NAME}};"
+    },
+    {
+      "path": "{{COMPONENT_NAME}}.test.js", 
+      "content": "// PURPOSE: Test suite for {{COMPONENT_NAME}} component\n\nimport { render, screen } from '@testing-library/react';\nimport {{COMPONENT_NAME}} from './{{COMPONENT_NAME}}';\n\ndescribe('{{COMPONENT_NAME}}', () => {\n  it('renders without crashing', () => {\n    render(<{{COMPONENT_NAME}} />);\n    expect(screen.getByText('{{COMPONENT_NAME}}')).toBeInTheDocument();\n  });\n\n  it('displays the component description', () => {\n    render(<{{COMPONENT_NAME}} />);\n    expect(screen.getByText('{{COMPONENT_DESCRIPTION}}')).toBeInTheDocument();\n  });\n\n  // Add more tests as needed\n  // Keep under 300 lines total\n});"
+    },
+    {
+      "path": "{{COMPONENT_NAME}}.stories.js",
+      "content": "// PURPOSE: Storybook stories for {{COMPONENT_NAME}} component\n\nimport {{COMPONENT_NAME}} from './{{COMPONENT_NAME}}';\n\nexport default {\n  title: '{{COMPONENT_CATEGORY}}/{{COMPONENT_NAME}}',\n  component: {{COMPONENT_NAME}},\n  parameters: {\n    docs: {\n      description: {\n        component: '{{COMPONENT_DESCRIPTION}}'\n      }\n    }\n  }\n};\n\nexport const Default = {\n  args: {\n    {{COMPONENT_DEFAULT_PROPS}}\n  }\n};\n\nexport const WithCustomProps = {\n  args: {\n    {{COMPONENT_CUSTOM_PROPS}}\n  }\n};"
+    },
+    {
+      "path": "index.js",
+      "content": "// PURPOSE: Export {{COMPONENT_NAME}} component for external use\n\nexport { default } from './{{COMPONENT_NAME}}';\nexport { default as {{COMPONENT_NAME}} } from './{{COMPONENT_NAME}}';"
+    },
+    {
+      "path": "README.md",
+      "content": "# {{COMPONENT_NAME}}\n\n{{COMPONENT_DESCRIPTION}}\n\n## Usage\n\n```jsx\nimport {{COMPONENT_NAME}} from './{{COMPONENT_NAME}}';\n\nfunction App() {\n  return (\n    <{{COMPONENT_NAME}}\n      {{COMPONENT_PROPS_EXAMPLE}}\n    />\n  );\n}\n```\n\n## Props\n\n{{COMPONENT_PROPS_TABLE}}\n\n## Development\n\n### Testing\n\n```bash\nnpm test {{COMPONENT_NAME}}.test.js\n```\n\n### Storybook\n\n```bash\nnpm run storybook\n```\n\n## Principles\n\n- **Single Responsibility**: This component does one thing well\n- **Under 300 lines**: Follows disciplined development file size limits\n- **3 imports max**: Minimal dependencies\n- **PURPOSE comment**: Clear intent documented\n- **Well tested**: Unit tests and stories included\n\n## Files\n\n- `{{COMPONENT_NAME}}.js` - Main component implementation\n- `{{COMPONENT_NAME}}.test.js` - Unit tests\n- `{{COMPONENT_NAME}}.stories.js` - Storybook stories\n- `index.js` - Export definitions\n- `README.md` - This documentation"
+    }
+  ],
+  "claudeMd": {
+    "sections": [
+      "## {{COMPONENT_NAME}} Component",
+      "",
+      "{{COMPONENT_DESCRIPTION}}",
+      "",
+      "### Component Guidelines",
+      "- Keep component under 300 lines",
+      "- Maximum 3 imports",
+      "- Single responsibility principle",
+      "- Include PURPOSE comment",
+      "- Write unit tests",
+      "",
+      "### Testing",
+      "- Unit tests in `{{COMPONENT_NAME}}.test.js`",
+      "- Storybook stories for documentation",
+      "- Test coverage should be >80%"
+    ],
+    "variables": {
+      "COMPONENT_TYPE": "Functional Component",
+      "TESTING_FRAMEWORK": "Jest + Testing Library",
+      "DOCUMENTATION": "Storybook"
+    },
+    "instructions": [
+      "Keep component focused on single responsibility",
+      "Write comprehensive unit tests",
+      "Document props and usage in stories",
+      "Follow naming conventions consistently"
+    ]
+  },
+  "variables": {
+    "COMPONENT_NAME": {
+      "description": "Name of the component (PascalCase)",
+      "default": "MyComponent",
+      "required": true,
+      "pattern": "^[A-Z][a-zA-Z0-9]*$"
+    },
+    "COMPONENT_NAME_LOWER": {
+      "description": "Component name in lowercase for CSS classes",
+      "default": "my-component",
+      "required": false
+    },
+    "COMPONENT_PURPOSE": {
+      "description": "One-line description of component purpose",
+      "default": "Reusable UI component",
+      "required": true
+    },
+    "COMPONENT_DESCRIPTION": {
+      "description": "Detailed description of what the component does",
+      "default": "A flexible, reusable component for common UI patterns",
+      "required": true
+    },
+    "COMPONENT_CATEGORY": {
+      "description": "Storybook category for the component",
+      "default": "Components",
+      "required": false
+    },
+    "COMPONENT_PROPS": {
+      "description": "Props destructuring pattern",
+      "default": "title, description, children",
+      "required": false
+    },
+    "COMPONENT_PROPS_EXAMPLE": {
+      "description": "Example props for usage documentation",
+      "default": "title=\"Example Title\"\\n      description=\"Example description\"",
+      "required": false
+    },
+    "COMPONENT_PROPS_TABLE": {
+      "description": "Props documentation table",
+      "default": "| Prop | Type | Default | Description |\\n|------|------|---------|-------------|\\n| title | string | - | Component title |\\n| description | string | - | Component description |",
+      "required": false
+    },
+    "COMPONENT_DEFAULT_PROPS": {
+      "description": "Default props for Storybook default story",
+      "default": "title: 'Default Title',\\n    description: 'Default description'",
+      "required": false
+    },
+    "COMPONENT_CUSTOM_PROPS": {
+      "description": "Custom props for Storybook variant story",
+      "default": "title: 'Custom Title',\\n    description: 'Custom description with different content'",
+      "required": false
+    }
+  },
+  "dependencies": [
+    "react",
+    "@testing-library/react",
+    "@testing-library/jest-dom"
+  ],
+  "postCreate": [
+    {
+      "command": "npm test {{COMPONENT_NAME}}.test.js",
+      "description": "Run component tests",
+      "optional": true
+    }
+  ]
+}

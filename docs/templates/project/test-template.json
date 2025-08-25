@@ -1,0 +1,36 @@
+{
+  "id": "test-template",
+  "meta": {
+    "name": "Test-template Template",
+    "category": "project",
+    "version": "1.0.0",
+    "description": "Template for test-template",
+    "tags": [],
+    "author": "",
+    "createdAt": "2025-08-24T23:01:22.365Z",
+    "lastModified": "2025-08-24T23:01:22.365Z"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# {{PROJECT_NAME}}\n\n{{PROJECT_DESCRIPTION}}\n\nCreated from template: test-template"
+    }
+  ],
+  "claudeMd": {
+    "sections": [],
+    "variables": {},
+    "instructions": []
+  },
+  "variables": {
+    "PROJECT_NAME": {
+      "description": "Name of the project",
+      "default": "My Project"
+    },
+    "PROJECT_DESCRIPTION": {
+      "description": "Description of the project",
+      "default": "A new project"
+    }
+  },
+  "dependencies": [],
+  "postCreate": []
+}

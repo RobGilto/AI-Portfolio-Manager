@@ -1,0 +1,61 @@
+{
+  "templates": {
+    "react-app": {
+      "category": "project",
+      "name": "React Application",
+      "description": "Modern React application with TypeScript, Tailwind CSS, and essential tooling",
+      "version": "1.0.0",
+      "path": "/home/robert/AIPortfolio/docs/templates/project/react-app.json",
+      "createdAt": "2025-08-24T12:00:00.000Z",
+      "lastModified": "2025-08-24T12:00:00.000Z",
+      "tags": [
+        "react",
+        "typescript",
+        "tailwindcss",
+        "frontend"
+      ]
+    },
+    "health-check": {
+      "category": "workflow",
+      "name": "Project Health Check Workflow",
+      "description": "Disciplined development health monitoring system following 300-line file limits",
+      "version": "1.0.0",
+      "path": "/home/robert/AIPortfolio/docs/templates/workflow/health-check.json",
+      "createdAt": "2025-08-24T12:00:00.000Z",
+      "lastModified": "2025-08-24T12:00:00.000Z",
+      "tags": [
+        "health-check",
+        "monitoring",
+        "discipline",
+        "workflow"
+      ]
+    },
+    "basic-component": {
+      "category": "component",
+      "name": "Basic Component Template",
+      "description": "Simple reusable component following disciplined development patterns",
+      "version": "1.0.0",
+      "path": "/home/robert/AIPortfolio/docs/templates/component/basic-component.json",
+      "createdAt": "2025-08-24T12:00:00.000Z",
+      "lastModified": "2025-08-24T12:00:00.000Z",
+      "tags": [
+        "component",
+        "reusable",
+        "basic",
+        "template"
+      ]
+    },
+    "test-template": {
+      "category": "project",
+      "name": "Test-template Template",
+      "description": "Template for test-template",
+      "version": "1.0.0",
+      "path": "/home/robert/AIPortfolio/docs/templates/project/test-template.json",
+      "createdAt": "2025-08-24T23:01:22.365Z",
+      "lastModified": "2025-08-24T23:01:22.365Z",
+      "tags": []
+    }
+  },
+  "lastUpdated": "2025-08-24T23:16:25.032Z",
+  "version": "1.0.0"
+}

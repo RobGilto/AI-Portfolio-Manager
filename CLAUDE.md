@@ -125,3 +125,9 @@ done
 - **Multiple files being edited:** STOP, focus on one
 
 This portfolio prioritizes disciplined development over rapid iteration, with automated health monitoring and clear lifecycle management.
+<!-- TEMPLATE:coding-standards -->
+## Coding Standards
+This project follows strict coding standards:
+- Use TypeScript
+- Follow ESLint rules
+<!-- /TEMPLATE:coding-standards -->

@@ -1,0 +1,96 @@
+{
+  "id": "health-check",
+  "meta": {
+    "name": "Project Health Check Workflow",
+    "category": "workflow",
+    "version": "1.0.0",
+    "description": "Disciplined development health monitoring system following 300-line file limits",
+    "tags": ["health-check", "monitoring", "discipline", "workflow"],
+    "author": "AI Portfolio System",
+    "createdAt": "2025-08-24T12:00:00.000Z",
+    "lastModified": "2025-08-24T12:00:00.000Z"
+  },
+  "files": [
+    {
+      "path": "scripts/health-check.js",
+      "content": "#!/usr/bin/env node\n// PURPOSE: Project health monitoring following disciplined development principles\n\nconst fs = require('fs');\nconst path = require('path');\nconst { execSync } = require('child_process');\n\nclass HealthMonitor {\n  constructor() {\n    this.maxFileSize = 300; // lines\n    this.maxImports = 3;\n    this.results = {\n      oversized: [],\n      tooManyImports: [],\n      missingPurpose: [],\n      totalFiles: 0,\n      healthScore: 100\n    };\n  }\n\n  checkProject() {\n    console.log('🔍 Running {{PROJECT_NAME}} health check...');\n    \n    this.scanDirectory('src');\n    this.generateReport();\n    \n    return this.results.healthScore >= 80;\n  }\n\n  scanDirectory(dir) {\n    if (!fs.existsSync(dir)) return;\n    \n    const files = fs.readdirSync(dir);\n    \n    files.forEach(file => {\n      const filePath = path.join(dir, file);\n      const stat = fs.statSync(filePath);\n      \n      if (stat.isDirectory()) {\n        this.scanDirectory(filePath);\n      } else if (this.isCodeFile(file)) {\n        this.checkFile(filePath);\n      }\n    });\n  }\n\n  isCodeFile(filename) {\n    return /\\.(js|ts|jsx|tsx|py|java|go|rs)$/.test(filename);\n  }\n\n  checkFile(filePath) {\n    this.results.totalFiles++;\n    \n    const content = fs.readFileSync(filePath, 'utf8');\n    const lines = content.split('\\n');\n    \n    // Check file size\n    if (lines.length > this.maxFileSize) {\n      this.results.oversized.push({\n        path: filePath,\n        lines: lines.length,\n        excess: lines.length - this.maxFileSize\n      });\n    }\n    \n    // Check import count\n    const imports = this.countImports(content);\n    if (imports > this.maxImports) {\n      this.results.tooManyImports.push({\n        path: filePath,\n        imports: imports,\n        excess: imports - this.maxImports\n      });\n    }\n    \n    // Check for PURPOSE comment\n    if (!content.includes('PURPOSE:')) {\n      this.results.missingPurpose.push(filePath);\n    }\n  }\n\n  countImports(content) {\n    const importPatterns = [\n      /^import .+ from .+$/gm,\n      /^const .+ = require\\(.+\\)$/gm,\n      /^from .+ import .+$/gm\n    ];\n    \n    return importPatterns.reduce((count, pattern) => {\n      const matches = content.match(pattern);\n      return count + (matches ? matches.length : 0);\n    }, 0);\n  }\n\n  generateReport() {\n    const issues = this.results.oversized.length + \n                  this.results.tooManyImports.length + \n                  this.results.missingPurpose.length;\n    \n    this.results.healthScore = Math.max(0, 100 - (issues * 10));\n    \n    console.log('\\n📊 Health Report:');\n    console.log(`Files scanned: ${this.results.totalFiles}`);\n    console.log(`Health score: ${this.results.healthScore}%`);\n    \n    if (this.results.oversized.length > 0) {\n      console.log('\\n🚨 Oversized files:');\n      this.results.oversized.forEach(file => {\n        console.log(`  ${file.path}: ${file.lines} lines (+${file.excess})`);\n      });\n    }\n    \n    if (this.results.tooManyImports.length > 0) {\n      console.log('\\n⚠️ Too many imports:');\n      this.results.tooManyImports.forEach(file => {\n        console.log(`  ${file.path}: ${file.imports} imports (+${file.excess})`);\n      });\n    }\n    \n    if (this.results.missingPurpose.length > 0) {\n      console.log('\\n📝 Missing PURPOSE comments:');\n      this.results.missingPurpose.forEach(file => {\n        console.log(`  ${file}`);\n      });\n    }\n  }\n}\n\nif (require.main === module) {\n  const monitor = new HealthMonitor();\n  const healthy = monitor.checkProject();\n  process.exit(healthy ? 0 : 1);\n}\n\nmodule.exports = HealthMonitor;",
+      "executable": true
+    },
+    {
+      "path": "package.json",
+      "content": "{\n  \"scripts\": {\n    \"check:health\": \"node scripts/health-check.js\",\n    \"check:size\": \"find src -name '*.js' -o -name '*.ts' -o -name '*.jsx' -o -name '*.tsx' | xargs wc -l | sort -nr\",\n    \"session:start\": \"echo '🚀 Session started at' && date && echo '{{SESSION_OBJECTIVE}}'\",\n    \"session:end\": \"npm run check:health && echo '✅ Session ended at' && date\"\n  }\n}"
+    },
+    {
+      "path": "DISCIPLINE.md",
+      "content": "# {{PROJECT_NAME}} - Disciplined Development\n\n## Health Monitoring\n\nThis project follows disciplined development principles:\n\n### File Size Discipline\n- **Maximum**: 300 lines per file\n- **Action**: Split files before they become unwieldy\n- **Check**: `npm run check:size`\n\n### Import Discipline  \n- **Maximum**: 3 imports per file\n- **Action**: Forces intentional dependencies\n- **Benefit**: Reduces coupling and complexity\n\n### Session Discipline\n- **Start**: `npm run session:start`\n- **End**: `npm run session:end` \n- **Frequency**: Health check every session\n\n### PURPOSE Comments\n- Every file must start with a PURPOSE comment\n- Format: `// PURPOSE: What this file does in one line`\n- Helps maintain focus and clarity\n\n## Emergency Protocols\n\n- **File > 250 lines**: STOP, split immediately\n- **More than 3 imports**: STOP, reconsider approach  \n- **Lost track of objective**: STOP, review PURPOSE\n- **Multiple files being edited**: STOP, focus on one\n\n## Health Check Command\n\n```bash\nnpm run check:health\n```\n\nThis will:\n- Scan all source files\n- Report size violations\n- Report import violations \n- Report missing PURPOSE comments\n- Provide health score (target: 80%+)\n\n## Integration\n\nThe health check runs automatically:\n- At session end (`npm run session:end`)\n- Before commits (if pre-commit hook setup)\n- On CI/CD pipelines (recommended)\n\nMaintaining discipline leads to:\n- Cleaner, more maintainable code\n- Better focused development sessions\n- Reduced technical debt\n- Easier debugging and modification"
+    }
+  ],
+  "claudeMd": {
+    "sections": [
+      "## Disciplined Development Health Monitoring",
+      "",
+      "This project follows disciplined development principles with automated health monitoring.",
+      "",
+      "### Health Check Commands",
+      "- `npm run check:health` - Full health report",
+      "- `npm run check:size` - File size analysis",
+      "- `npm run session:start` - Begin focused session", 
+      "- `npm run session:end` - End session with health check",
+      "",
+      "### Development Discipline",
+      "- Maximum 300 lines per file",
+      "- Maximum 3 imports per file",
+      "- PURPOSE comment required in every file",
+      "- Regular health monitoring",
+      "",
+      "### Emergency Protocols",
+      "- File > 250 lines: STOP, split immediately",
+      "- More than 3 imports: STOP, reconsider approach",
+      "- Lost track of objective: STOP, review PURPOSE",
+      "- Multiple files being edited: STOP, focus on one"
+    ],
+    "variables": {
+      "HEALTH_MONITORING": "Automated",
+      "FILE_SIZE_LIMIT": "300 lines",
+      "IMPORT_LIMIT": "3 imports"
+    },
+    "instructions": [
+      "Run health check before every commit",
+      "Split files before they reach 300 lines", 
+      "Keep imports under 3 per file",
+      "Add PURPOSE comment to every new file",
+      "Use session:start and session:end for focused development"
+    ]
+  },
+  "variables": {
+    "PROJECT_NAME": {
+      "description": "Name of the project to monitor",
+      "default": "My Project",
+      "required": true
+    },
+    "SESSION_OBJECTIVE": {
+      "description": "Current development session objective",
+      "default": "Focused development session",
+      "required": false
+    }
+  },
+  "dependencies": [
+    {
+      "name": "node",
+      "version": ">=14.0.0",
+      "type": "system"
+    }
+  ],
+  "postCreate": [
+    {
+      "command": "chmod +x scripts/health-check.js",
+      "description": "Make health check script executable",
+      "optional": false
+    },
+    {
+      "command": "npm run check:health",
+      "description": "Run initial health check",
+      "optional": true
+    }
+  ]
+}
