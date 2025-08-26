@@ -1,0 +1,233 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-08-26T12:15:29.300Z",
+  "projectScores": {
+    "ml-recommendation-system": {
+      "totalScore": 11,
+      "components": {
+        "competencyGap": {
+          "score": 0,
+          "details": {
+            "matchedCompetencies": 0,
+            "topMatches": [],
+            "totalGapValue": 0,
+            "explanation": "Addresses 0 competency areas with development gaps"
+          }
+        },
+        "learningPotential": {
+          "score": 15,
+          "details": {
+            "factors": [
+              "Project complexity: learning (+15)"
+            ],
+            "explanation": "Learning potential based on project complexity, technologies, and goals"
+          }
+        },
+        "missionAlignment": {
+          "score": 5,
+          "details": {
+            "mission": "Senior AI Engineer",
+            "factors": [
+              "Competency focus alignment (+0)",
+              "Timeline alignment (+5)"
+            ],
+            "explanation": "Alignment with active mission: Senior AI Engineer"
+          }
+        },
+        "timeInvestment": {
+          "score": 55,
+          "details": {
+            "estimatedHours": 0,
+            "optimalRange": "8-40 hours for learning projects",
+            "typeAdjustment": 5,
+            "explanation": "Time investment appropriateness for learning value"
+          }
+        }
+      },
+      "breakdown": {
+        "level": "Very Low",
+        "color": "red",
+        "message": "Limited learning value or alignment"
+      },
+      "recommendations": [
+        "Consider adding specific learning goals to increase project value",
+        "Incorporate additional technologies to maximize learning",
+        "Add time estimation to better plan learning investment",
+        "Align project with mission competencies: ml-fundamentals, deep-learning"
+      ],
+      "metadata": {
+        "activeMission": "Senior AI Engineer",
+        "scoringWeights": {
+          "competencyGap": 0.4,
+          "learningPotential": 0.3,
+          "missionAlignment": 0.2,
+          "timeInvestment": 0.1
+        },
+        "projectType": "learning"
+      },
+      "scoredAt": "2025-08-26T12:13:45.830Z",
+      "projectData": {
+        "description": "📚 Learning project",
+        "tags": [],
+        "projectType": "learning",
+        "technologies": []
+      }
+    },
+    "test-ml-project": {
+      "totalScore": 11,
+      "components": {
+        "competencyGap": {
+          "score": 0,
+          "details": {
+            "matchedCompetencies": 0,
+            "topMatches": [],
+            "totalGapValue": 0,
+            "explanation": "Addresses 0 competency areas with development gaps"
+          }
+        },
+        "learningPotential": {
+          "score": 15,
+          "details": {
+            "factors": [
+              "Project complexity: learning (+15)"
+            ],
+            "explanation": "Learning potential based on project complexity, technologies, and goals"
+          }
+        },
+        "missionAlignment": {
+          "score": 5,
+          "details": {
+            "mission": "Senior AI Engineer",
+            "factors": [
+              "Competency focus alignment (+0)",
+              "Timeline alignment (+5)"
+            ],
+            "explanation": "Alignment with active mission: Senior AI Engineer"
+          }
+        },
+        "timeInvestment": {
+          "score": 55,
+          "details": {
+            "estimatedHours": 0,
+            "optimalRange": "8-40 hours for learning projects",
+            "typeAdjustment": 5,
+            "explanation": "Time investment appropriateness for learning value"
+          }
+        }
+      },
+      "breakdown": {
+        "level": "Very Low",
+        "color": "red",
+        "message": "Limited learning value or alignment"
+      },
+      "recommendations": [
+        "Consider adding specific learning goals to increase project value",
+        "Incorporate additional technologies to maximize learning",
+        "Add time estimation to better plan learning investment",
+        "Align project with mission competencies: ml-fundamentals, deep-learning"
+      ],
+      "metadata": {
+        "activeMission": "Senior AI Engineer",
+        "scoringWeights": {
+          "competencyGap": 0.4,
+          "learningPotential": 0.3,
+          "missionAlignment": 0.2,
+          "timeInvestment": 0.1
+        },
+        "projectType": "learning"
+      },
+      "scoredAt": "2025-08-26T12:15:29.300Z",
+      "projectData": {
+        "description": "📚 Learning project",
+        "tags": [],
+        "projectType": "learning",
+        "technologies": []
+      }
+    }
+  },
+  "scoringHistory": [
+    {
+      "projectName": "test-ml-project",
+      "totalScore": 11,
+      "timestamp": "2025-08-26T12:15:29.300Z",
+      "missionId": "senior-ai-engineer"
+    },
+    {
+      "projectName": "ml-recommendation-system",
+      "totalScore": 11,
+      "timestamp": "2025-08-26T12:13:45.830Z",
+      "missionId": "senior-ai-engineer"
+    },
+    {
+      "projectName": "ml-recommendation-system",
+      "totalScore": 11,
+      "timestamp": "2025-08-26T12:08:33.927Z",
+      "missionId": "senior-ai-engineer"
+    }
+  ],
+  "settings": {
+    "scoringEnabled": true,
+    "autoScoreOnCreate": true,
+    "scoreThresholds": {
+      "high": 80,
+      "medium": 60,
+      "low": 40
+    },
+    "weightings": {
+      "competencyGap": 0.4,
+      "learningPotential": 0.3,
+      "missionAlignment": 0.2,
+      "timeInvestment": 0.1
+    }
+  },
+  "templates": {
+    "default": {
+      "competencyWeights": {
+        "ml-fundamentals": 1,
+        "deep-learning": 1,
+        "production-systems": 1,
+        "cloud-platforms": 1,
+        "mlops-automation": 1,
+        "product-mindset": 1,
+        "leadership-management": 1,
+        "communication-influence": 1
+      }
+    },
+    "technical-focus": {
+      "competencyWeights": {
+        "ml-fundamentals": 1.5,
+        "deep-learning": 1.5,
+        "production-systems": 1.3,
+        "cloud-platforms": 1.2,
+        "mlops-automation": 1.2,
+        "product-mindset": 0.8,
+        "leadership-management": 0.5,
+        "communication-influence": 0.5
+      }
+    },
+    "leadership-focus": {
+      "competencyWeights": {
+        "ml-fundamentals": 0.8,
+        "deep-learning": 0.7,
+        "production-systems": 1,
+        "cloud-platforms": 1,
+        "mlops-automation": 1,
+        "product-mindset": 1.4,
+        "leadership-management": 1.6,
+        "communication-influence": 1.5
+      }
+    },
+    "product-focus": {
+      "competencyWeights": {
+        "ml-fundamentals": 1,
+        "deep-learning": 0.9,
+        "production-systems": 1.2,
+        "cloud-platforms": 1,
+        "mlops-automation": 1.1,
+        "product-mindset": 1.6,
+        "leadership-management": 1.3,
+        "communication-influence": 1.4
+      }
+    }
+  }
+}
