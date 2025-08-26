@@ -1,0 +1,124 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-08-26T12:13:50.058Z",
+  "activeMission": "senior-ai-engineer",
+  "missions": {
+    "senior-ai-engineer": {
+      "id": "senior-ai-engineer",
+      "title": "Senior AI Engineer",
+      "description": "Mission to achieve: Senior AI Engineer",
+      "targetDate": "2026-08-26T12:08:08.877Z",
+      "createdAt": "2025-08-26T12:08:08.877Z",
+      "status": "active",
+      "competencyFocus": [
+        "ml-fundamentals",
+        "deep-learning",
+        "production-systems"
+      ],
+      "progress": {
+        "projectsCompleted": 0,
+        "totalLearningHours": 0,
+        "competencyGains": {}
+      },
+      "metadata": {
+        "createdBy": "user",
+        "lastModified": "2025-08-26T12:08:08.877Z"
+      }
+    }
+  },
+  "userAssessments": {
+    "ml-fundamentals": {
+      "currentLevel": 2,
+      "targetLevel": 2,
+      "lastAssessed": "2025-08-26T12:08:18.904Z",
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": "Comfortable with scikit-learn and basic ML concepts"
+      }
+    },
+    "deep-learning": {
+      "currentLevel": 2,
+      "targetLevel": 2,
+      "lastAssessed": "2025-08-26T12:13:50.058Z",
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": "Starting to learn PyTorch"
+      }
+    },
+    "production-systems": {
+      "currentLevel": 1,
+      "targetLevel": 3,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    },
+    "cloud-platforms": {
+      "currentLevel": 1,
+      "targetLevel": 2,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    },
+    "mlops-automation": {
+      "currentLevel": 1,
+      "targetLevel": 3,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    },
+    "product-mindset": {
+      "currentLevel": 1,
+      "targetLevel": 2,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    },
+    "leadership-management": {
+      "currentLevel": 1,
+      "targetLevel": 2,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    },
+    "communication-influence": {
+      "currentLevel": 1,
+      "targetLevel": 2,
+      "lastAssessed": null,
+      "selfAssessment": {
+        "confidence": 0,
+        "notes": ""
+      }
+    }
+  },
+  "progressHistory": [
+    {
+      "competencyId": "ml-fundamentals",
+      "level": 2,
+      "notes": "Comfortable with scikit-learn and basic ML concepts",
+      "timestamp": "2025-08-26T12:08:18.904Z",
+      "missionId": "senior-ai-engineer"
+    },
+    {
+      "competencyId": "deep-learning",
+      "level": 2,
+      "notes": "Starting to learn PyTorch",
+      "timestamp": "2025-08-26T12:13:50.058Z",
+      "missionId": "senior-ai-engineer"
+    }
+  ],
+  "settings": {
+    "assessmentReminders": true,
+    "alignmentThreshold": 70,
+    "progressTrackingEnabled": true
+  }
+}

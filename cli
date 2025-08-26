@@ -5,6 +5,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const TemplateManager = require('./TemplateManager');
 const TemplateValidator = require('./TemplateValidator');
+const MissionAlignmentSystem = require('./MissionAlignmentSystem');
 
 // ADHD-friendly colors and emojis
 const colors = {
@@ -37,7 +38,12 @@ const emojis = {
   trial: '🧪',
   production: '🚀',
   research: '🔬',
-  template: '📄'
+  template: '📄',
+  // Mission System
+  mission: '🎖️',
+  competency: '📈',
+  alignment: '🎯',
+  dashboard: '📊'
 };
 
 const projectTypes = {
@@ -111,7 +117,7 @@ const projectTypes = {
 
 class PortfolioManager {
   constructor() {
-    this.root = process.cwd();
+    this.root = path.resolve(__dirname);
     this.statePath = path.join(this.root, '.system', 'state.json');
     this.indexPath = path.join(this.root, '.system', 'project-index.json');
     this.ensureDirectories();
@@ -126,6 +132,14 @@ class PortfolioManager {
       console.warn(`Template system unavailable: ${error.message}`);
       this.templateManager = null;
       this.templateValidator = null;
+    }
+
+    // Mission alignment system initialization
+    try {
+      this.missionSystem = new MissionAlignmentSystem(this.root);
+    } catch (error) {
+      console.warn(`Mission system unavailable: ${error.message}`);
+      this.missionSystem = null;
     }
   }
 
@@ -542,12 +556,17 @@ ${colors.yellow}📋 PROJECT FLOW:${colors.reset}                     ${colors.y
   ${colors.green}./cli pause <name>${colors.reset}       Move to MAYBE                ${colors.yellow}🎭 PROJECT TYPES:${colors.reset}
                                                        ${colors.green}./cli types${colors.reset}              Show all project types
 
-${colors.yellow}${emojis.template} TEMPLATE SYSTEM:${colors.reset}                  ${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
-  ${colors.green}./cli template-list [cat]${colors.reset} List available templates      ${colors.green}./cli help${colors.reset} (-h)          This help
-  ${colors.green}./cli template-show <id>${colors.reset}  Show template details         ${colors.green}./cli cheat${colors.reset}              Quick reference  
-  ${colors.green}./cli template-create <id>${colors.reset} Create new template          ${colors.green}./cli examples${colors.reset}           Usage examples
-  ${colors.green}./cli template-validate <id>${colors.reset} Validate template
-  ${colors.green}./cli template-delete <id>${colors.reset} Delete template
+${colors.yellow}${emojis.mission} AI MISSION SYSTEM:${colors.reset}               ${colors.yellow}${emojis.template} TEMPLATE SYSTEM:${colors.reset}
+  ${colors.green}./cli mission-create <title>${colors.reset}   Create new AI mission        ${colors.green}./cli template-list [cat]${colors.reset} List templates
+  ${colors.green}./cli mission-status${colors.reset}          Show mission progress        ${colors.green}./cli template-show <id>${colors.reset}  Show template details
+  ${colors.green}./cli competency-assess${colors.reset}       Self-assess skills           ${colors.green}./cli template-create${colors.reset}     Create new template
+  ${colors.green}./cli align-score <name>${colors.reset}      Score project alignment     ${colors.green}./cli template-validate${colors.reset}   Validate template
+  ${colors.green}./cli mission-dashboard${colors.reset}       View progress dashboard
+
+${colors.yellow}🤔 HELP & REMINDERS:${colors.reset}
+  ${colors.green}./cli help${colors.reset} (-h)          This help
+  ${colors.green}./cli cheat${colors.reset}              Quick reference  
+  ${colors.green}./cli examples${colors.reset}           Usage examples
 `);
   }
 
@@ -1159,6 +1178,27 @@ ${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
       case 'template-sync':
         this.handleTemplateSync();
         break;
+
+      // Mission alignment system commands
+      case 'mission-create':
+        this.handleMissionCreate(name, args[2]);
+        break;
+
+      case 'mission-status':
+        this.handleMissionStatus();
+        break;
+
+      case 'competency-assess':
+        this.handleCompetencyAssess(name, args[2], args[3]);
+        break;
+
+      case 'align-score':
+        this.handleAlignScore(name);
+        break;
+
+      case 'mission-dashboard':
+        this.handleMissionDashboard();
+        break;
         
       default:
         console.log(`${colors.red}Unknown command: ${cmd}${colors.reset}`);
@@ -1412,6 +1452,192 @@ ${colors.yellow}ADHD-Friendly Shortcuts:${colors.reset}
     } catch (error) {
       console.log(`${colors.red}Failed to sync templates: ${error.message}${colors.reset}`);
     }
+  }
+
+  // Mission alignment system handlers
+  handleMissionCreate(title, targetDate) {
+    if (!this.missionSystem) {
+      console.log(`${colors.red}Mission system not available${colors.reset}`);
+      return;
+    }
+
+    if (!title) {
+      console.log(`${colors.red}Usage: ./cli mission-create "<title>" [YYYY-MM-DD]${colors.reset}`);
+      console.log(`${colors.cyan}Example: ./cli mission-create "Senior ML Engineer" 2024-12-31${colors.reset}`);
+      return;
+    }
+
+    try {
+      const target = targetDate || this._getDefaultMissionDate();
+      const mission = this.missionSystem.createMission(
+        title,
+        `Mission to achieve: ${title}`,
+        target,
+        ['ml-fundamentals', 'deep-learning', 'production-systems']
+      );
+
+      console.log(`${emojis.mission} Created mission: "${mission.title}"`);
+      console.log(`${colors.cyan}Target Date: ${new Date(mission.targetDate).toLocaleDateString()}${colors.reset}`);
+      console.log(`${colors.green}Use: ./cli mission-status to track progress${colors.reset}`);
+    } catch (error) {
+      console.log(`${colors.red}Failed to create mission: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleMissionStatus() {
+    if (!this.missionSystem) {
+      console.log(`${colors.red}Mission system not available${colors.reset}`);
+      return;
+    }
+
+    try {
+      const status = this.missionSystem.getMissionStatus();
+      
+      if (!status.hasActiveMission) {
+        console.log(`${colors.yellow}${emojis.thinking} No active mission set${colors.reset}`);
+        console.log(`${colors.cyan}Create one with: ./cli mission-create "<title>"${colors.reset}`);
+        return;
+      }
+
+      const mission = status.mission;
+      console.log(`${colors.bright}${emojis.mission} Active Mission: ${mission.title}${colors.reset}\n`);
+      console.log(`${colors.yellow}Target Date:${colors.reset} ${new Date(mission.targetDate).toLocaleDateString()}`);
+      console.log(`${colors.yellow}Days Remaining:${colors.reset} ${status.daysUntilTarget}`);
+      console.log(`${colors.yellow}Overall Progress:${colors.reset} ${Math.round(status.overallProgress * 100)}%`);
+      
+      if (Object.keys(status.competencyProgress).length > 0) {
+        console.log(`\n${colors.bright}Competency Progress:${colors.reset}`);
+        Object.entries(status.competencyProgress).forEach(([compId, progress]) => {
+          const percentage = Math.round(progress * 100);
+          console.log(`  • ${compId}: ${percentage}%`);
+        });
+      }
+    } catch (error) {
+      console.log(`${colors.red}Failed to show mission status: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleCompetencyAssess(competencyId, currentLevel, notes) {
+    if (!this.missionSystem) {
+      console.log(`${colors.red}Mission system not available${colors.reset}`);
+      return;
+    }
+
+    if (!competencyId || !currentLevel) {
+      console.log(`${colors.red}Usage: ./cli competency-assess <competency-id> <current-level> [notes]${colors.reset}`);
+      console.log(`${colors.cyan}Available competencies: ml-fundamentals, deep-learning, production-systems${colors.reset}`);
+      console.log(`${colors.cyan}Levels: 1 (Beginner), 2 (Intermediate), 3 (Advanced), 4 (Expert)${colors.reset}`);
+      return;
+    }
+
+    try {
+      const level = parseInt(currentLevel);
+      const assessment = this.missionSystem.updateCompetencyAssessment(competencyId, level, null, notes || '');
+      
+      console.log(`${emojis.competency} Updated assessment for ${competencyId}`);
+      console.log(`${colors.yellow}Current Level:${colors.reset} ${assessment.currentLevel}`);
+      console.log(`${colors.yellow}Target Level:${colors.reset} ${assessment.targetLevel}`);
+      console.log(`${colors.cyan}Use: ./cli mission-dashboard for full overview${colors.reset}`);
+    } catch (error) {
+      console.log(`${colors.red}Failed to assess competency: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleAlignScore(projectName) {
+    if (!this.missionSystem) {
+      console.log(`${colors.red}Mission system not available${colors.reset}`);
+      return;
+    }
+
+    if (!projectName) {
+      console.log(`${colors.red}Usage: ./cli align-score <project-name>${colors.reset}`);
+      return;
+    }
+
+    if (!this.projectExists(projectName)) {
+      console.log(`${colors.red}Project "${projectName}" not found${colors.reset}`);
+      return;
+    }
+
+    try {
+      // Use AlignmentScorer through CompetencyEngine
+      const CompetencyEngine = require('./CompetencyEngine');
+      const AlignmentScorer = require('./AlignmentScorer');
+      
+      const scorer = new AlignmentScorer(this.root);
+      const projectData = this.index.projects[projectName];
+      
+      const score = scorer.scoreProject(projectName, {
+        description: projectData.note || '',
+        tags: [],
+        projectType: projectData.projectType || 'learning',
+        technologies: []
+      });
+
+      console.log(`${emojis.alignment} Alignment Score for "${projectName}": ${score.totalScore}/100`);
+      console.log(`${colors.bright}${score.breakdown.level} - ${score.breakdown.message}${colors.reset}`);
+      
+      console.log(`\n${colors.yellow}Component Breakdown:${colors.reset}`);
+      console.log(`  • Competency Gap: ${score.components.competencyGap.score}/100`);
+      console.log(`  • Learning Potential: ${score.components.learningPotential.score}/100`);
+      console.log(`  • Mission Alignment: ${score.components.missionAlignment.score}/100`);
+      console.log(`  • Time Investment: ${score.components.timeInvestment.score}/100`);
+
+      if (score.recommendations.length > 0) {
+        console.log(`\n${colors.cyan}Recommendations:${colors.reset}`);
+        score.recommendations.forEach(rec => console.log(`  • ${rec}`));
+      }
+    } catch (error) {
+      console.log(`${colors.red}Failed to score project: ${error.message}${colors.reset}`);
+    }
+  }
+
+  handleMissionDashboard() {
+    if (!this.missionSystem) {
+      console.log(`${colors.red}Mission system not available${colors.reset}`);
+      return;
+    }
+
+    try {
+      const dashboard = this.missionSystem.generateDashboard();
+      
+      console.log(`${colors.bright}${emojis.dashboard} AI Engineering Mission Dashboard${colors.reset}\n`);
+      
+      if (dashboard.mission) {
+        console.log(`${colors.yellow}Active Mission:${colors.reset} ${dashboard.mission.title}`);
+        console.log(`${colors.yellow}Days Remaining:${colors.reset} ${dashboard.mission.daysRemaining}`);
+        console.log(`${colors.yellow}Progress:${colors.reset} ${Math.round(dashboard.mission.progress * 100)}%\n`);
+      } else {
+        console.log(`${colors.red}No active mission${colors.reset}\n`);
+      }
+
+      console.log(`${colors.bright}Competency Overview:${colors.reset}`);
+      console.log(`  • Total Gaps: ${dashboard.competencies.totalGaps}`);
+      console.log(`  • High Priority: ${dashboard.competencies.highPriorityGaps}\n`);
+
+      if (dashboard.competencies.topGaps.length > 0) {
+        console.log(`${colors.bright}Top Development Areas:${colors.reset}`);
+        dashboard.competencies.topGaps.forEach((gap, index) => {
+          console.log(`  ${index + 1}. ${gap.competency.name} (${gap.gap} level gap)`);
+        });
+        console.log();
+      }
+
+      if (dashboard.recommendations.length > 0) {
+        console.log(`${colors.bright}Recommendations:${colors.reset}`);
+        dashboard.recommendations.forEach(rec => {
+          console.log(`  • ${rec.message}`);
+        });
+      }
+    } catch (error) {
+      console.log(`${colors.red}Failed to show dashboard: ${error.message}${colors.reset}`);
+    }
+  }
+
+  _getDefaultMissionDate() {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return date.toISOString();
   }
 }
 

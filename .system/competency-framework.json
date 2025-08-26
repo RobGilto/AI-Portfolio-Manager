@@ -1,0 +1,496 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-08-26T00:00:00.000Z",
+  "competencies": {
+    "ml-fundamentals": {
+      "id": "ml-fundamentals",
+      "name": "Machine Learning Fundamentals",
+      "description": "Core ML concepts, algorithms, statistics, and mathematical foundations",
+      "category": "technical-foundation",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic understanding of ML concepts and terminology",
+          "skills": [
+            "Understand supervised vs unsupervised learning",
+            "Know common algorithms (linear regression, decision trees)",
+            "Basic statistics and probability",
+            "Can use scikit-learn for simple tasks"
+          ],
+          "timeToAchieve": "1-3 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Can implement and tune ML models independently",
+          "skills": [
+            "Feature engineering and selection",
+            "Cross-validation and model evaluation",
+            "Hyperparameter tuning",
+            "Handle overfitting and bias-variance tradeoff"
+          ],
+          "timeToAchieve": "6-12 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Deep understanding of ML theory and custom implementations",
+          "skills": [
+            "Implement algorithms from scratch",
+            "Advanced feature engineering",
+            "Ensemble methods and stacking",
+            "Custom loss functions and metrics"
+          ],
+          "timeToAchieve": "1-2 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Research-level understanding with novel contributions",
+          "skills": [
+            "Develop new algorithms or improvements",
+            "Theoretical analysis and proofs",
+            "Research publication quality work",
+            "Mentor others in ML fundamentals"
+          ],
+          "timeToAchieve": "3+ years"
+        }
+      }
+    },
+    "deep-learning": {
+      "id": "deep-learning",
+      "name": "Deep Learning & Neural Networks",
+      "description": "Neural networks, deep learning architectures, and modern AI techniques",
+      "category": "technical-advanced",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic neural network concepts and frameworks",
+          "skills": [
+            "Understand perceptrons and multilayer networks",
+            "Basic PyTorch or TensorFlow usage",
+            "Backpropagation concept",
+            "Train simple feedforward networks"
+          ],
+          "timeToAchieve": "2-4 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Work with CNN, RNN, and modern architectures",
+          "skills": [
+            "Build and train CNNs for image tasks",
+            "RNNs and LSTMs for sequence data",
+            "Transfer learning and fine-tuning",
+            "Handle gradient problems and optimization"
+          ],
+          "timeToAchieve": "8-15 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Modern architectures and cutting-edge techniques",
+          "skills": [
+            "Transformers and attention mechanisms",
+            "GANs and generative models",
+            "Advanced optimization techniques",
+            "Custom architectures and loss functions"
+          ],
+          "timeToAchieve": "1.5-2.5 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Research-level expertise in deep learning",
+          "skills": [
+            "Novel architecture design",
+            "State-of-the-art research implementations",
+            "Theoretical understanding of deep learning",
+            "Contribute to major frameworks"
+          ],
+          "timeToAchieve": "3+ years"
+        }
+      }
+    },
+    "production-systems": {
+      "id": "production-systems",
+      "name": "Production ML Systems",
+      "description": "Building, deploying, and maintaining ML systems in production",
+      "category": "engineering",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic deployment and system design concepts",
+          "skills": [
+            "Deploy models with Flask/FastAPI",
+            "Understand API design principles",
+            "Basic containerization with Docker",
+            "Simple monitoring and logging"
+          ],
+          "timeToAchieve": "1-3 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Scalable systems and proper engineering practices",
+          "skills": [
+            "Design scalable ML APIs",
+            "Model versioning and A/B testing",
+            "Database integration and data pipelines",
+            "Error handling and system resilience"
+          ],
+          "timeToAchieve": "6-12 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "High-scale systems and complex architectures",
+          "skills": [
+            "Microservices for ML systems",
+            "Real-time and streaming ML",
+            "Advanced monitoring and alerting",
+            "Performance optimization at scale"
+          ],
+          "timeToAchieve": "1-2 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Architecture leadership for enterprise ML systems",
+          "skills": [
+            "Design enterprise ML platforms",
+            "Multi-model systems and orchestration",
+            "Advanced security and compliance",
+            "Lead technical architecture decisions"
+          ],
+          "timeToAchieve": "2+ years"
+        }
+      }
+    },
+    "cloud-platforms": {
+      "id": "cloud-platforms",
+      "name": "Cloud Platforms & Infrastructure",
+      "description": "AWS, Azure, GCP services for ML workloads and infrastructure management",
+      "category": "infrastructure",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic cloud services and ML offerings",
+          "skills": [
+            "Use cloud ML services (SageMaker, AutoML)",
+            "Basic compute and storage services",
+            "Simple deployment to cloud platforms",
+            "Understand cloud pricing models"
+          ],
+          "timeToAchieve": "1-2 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Design and manage cloud ML workflows",
+          "skills": [
+            "Build ML pipelines in the cloud",
+            "Manage compute resources and scaling",
+            "Data lakes and warehousing",
+            "Basic DevOps and CI/CD for ML"
+          ],
+          "timeToAchieve": "4-8 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Complex cloud architectures and optimization",
+          "skills": [
+            "Multi-cloud and hybrid strategies",
+            "Advanced networking and security",
+            "Cost optimization and resource management",
+            "Custom cloud solutions and integrations"
+          ],
+          "timeToAchieve": "1-1.5 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Cloud architecture leadership and strategy",
+          "skills": [
+            "Enterprise cloud strategy",
+            "Advanced security and compliance",
+            "Cloud-native architecture design",
+            "Lead cloud transformation initiatives"
+          ],
+          "timeToAchieve": "2+ years"
+        }
+      }
+    },
+    "mlops-automation": {
+      "id": "mlops-automation",
+      "name": "MLOps & Automation",
+      "description": "ML pipeline automation, CI/CD, monitoring, and operational excellence",
+      "category": "operations",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic automation and versioning concepts",
+          "skills": [
+            "Git for ML projects and DVC basics",
+            "Simple CI/CD pipelines",
+            "Basic experiment tracking (MLflow, Weights & Biases)",
+            "Automated testing for ML code"
+          ],
+          "timeToAchieve": "2-4 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "End-to-end ML automation pipelines",
+          "skills": [
+            "Automated model training and evaluation",
+            "Model registry and versioning",
+            "Data validation and monitoring",
+            "Automated deployment and rollback"
+          ],
+          "timeToAchieve": "6-10 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Sophisticated MLOps practices and tools",
+          "skills": [
+            "Complex pipeline orchestration (Airflow, Kubeflow)",
+            "Advanced monitoring and alerting",
+            "Feature stores and data lineage",
+            "Multi-environment ML workflows"
+          ],
+          "timeToAchieve": "1-1.5 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "MLOps platform design and organizational leadership",
+          "skills": [
+            "Design enterprise MLOps platforms",
+            "Establish MLOps best practices organization-wide",
+            "Advanced governance and compliance",
+            "Lead MLOps transformation initiatives"
+          ],
+          "timeToAchieve": "2+ years"
+        }
+      }
+    },
+    "product-mindset": {
+      "id": "product-mindset",
+      "name": "Product & Business Mindset",
+      "description": "Understanding business value, user needs, and product development for AI",
+      "category": "business",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic product thinking and business awareness",
+          "skills": [
+            "Understand business metrics and KPIs",
+            "Basic user research and persona development",
+            "ROI and cost-benefit analysis for ML",
+            "Communicate technical concepts to non-technical stakeholders"
+          ],
+          "timeToAchieve": "2-4 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Product development and strategy skills",
+          "skills": [
+            "Product discovery and validation",
+            "A/B testing and experimentation",
+            "Roadmap planning and prioritization",
+            "Cross-functional collaboration"
+          ],
+          "timeToAchieve": "6-12 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Product leadership and strategic thinking",
+          "skills": [
+            "Product strategy and vision development",
+            "Market analysis and competitive intelligence",
+            "Advanced metrics and analytics",
+            "Product-market fit assessment"
+          ],
+          "timeToAchieve": "1-2 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Business leadership and strategic product direction",
+          "skills": [
+            "Business strategy and market expansion",
+            "Investment and funding decisions",
+            "Board-level product communication",
+            "Lead product transformation initiatives"
+          ],
+          "timeToAchieve": "3+ years"
+        }
+      }
+    },
+    "leadership-management": {
+      "id": "leadership-management",
+      "name": "Leadership & Team Management",
+      "description": "Leading AI teams, managing people, and driving organizational change",
+      "category": "leadership",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic leadership and mentoring skills",
+          "skills": [
+            "Mentor junior team members",
+            "Lead small technical projects",
+            "Basic project management",
+            "Effective technical communication"
+          ],
+          "timeToAchieve": "3-6 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "Team leadership and people management",
+          "skills": [
+            "Manage small to medium engineering teams",
+            "Performance management and feedback",
+            "Technical hiring and onboarding",
+            "Cross-team collaboration and influence"
+          ],
+          "timeToAchieve": "1-1.5 years"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Organizational leadership and culture building",
+          "skills": [
+            "Build and scale high-performing teams",
+            "Organizational design and culture",
+            "Strategic planning and execution",
+            "Lead complex change initiatives"
+          ],
+          "timeToAchieve": "2-3 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Executive leadership and industry influence",
+          "skills": [
+            "C-level executive responsibilities",
+            "Industry thought leadership",
+            "Board advisory and governance",
+            "Lead organization-wide transformation"
+          ],
+          "timeToAchieve": "5+ years"
+        }
+      }
+    },
+    "communication-influence": {
+      "id": "communication-influence",
+      "name": "Communication & External Influence",
+      "description": "Public speaking, writing, community building, and industry presence",
+      "category": "influence",
+      "levels": {
+        "beginner": {
+          "level": 1,
+          "name": "Beginner",
+          "description": "Basic technical communication skills",
+          "skills": [
+            "Write clear technical documentation",
+            "Present to internal teams",
+            "Participate in technical discussions",
+            "Basic blogging or content creation"
+          ],
+          "timeToAchieve": "2-4 months"
+        },
+        "intermediate": {
+          "level": 2,
+          "name": "Intermediate",
+          "description": "External communication and community engagement",
+          "skills": [
+            "Conference speaking and workshops",
+            "Technical blogging and article writing",
+            "Open source contributions",
+            "Community building and engagement"
+          ],
+          "timeToAchieve": "8-15 months"
+        },
+        "advanced": {
+          "level": 3,
+          "name": "Advanced",
+          "description": "Thought leadership and industry influence",
+          "skills": [
+            "Keynote speaking and industry events",
+            "Published articles or books",
+            "Industry advisory roles",
+            "Media interviews and thought leadership"
+          ],
+          "timeToAchieve": "2-3 years"
+        },
+        "expert": {
+          "level": 4,
+          "name": "Expert",
+          "description": "Global influence and industry shaping",
+          "skills": [
+            "Global conference keynotes",
+            "Industry standards and best practices",
+            "High-profile media presence",
+            "Shape industry direction and trends"
+          ],
+          "timeToAchieve": "5+ years"
+        }
+      }
+    }
+  },
+  "categories": {
+    "technical-foundation": {
+      "name": "Technical Foundation",
+      "description": "Core technical skills and knowledge",
+      "color": "#3b82f6"
+    },
+    "technical-advanced": {
+      "name": "Advanced Technical",
+      "description": "Cutting-edge technical expertise",
+      "color": "#8b5cf6"
+    },
+    "engineering": {
+      "name": "Engineering Excellence",
+      "description": "Software engineering and system design",
+      "color": "#10b981"
+    },
+    "infrastructure": {
+      "name": "Infrastructure & Platforms",
+      "description": "Cloud, DevOps, and infrastructure",
+      "color": "#f59e0b"
+    },
+    "operations": {
+      "name": "Operations & Automation",
+      "description": "MLOps, automation, and operational excellence",
+      "color": "#ef4444"
+    },
+    "business": {
+      "name": "Business & Product",
+      "description": "Product mindset and business understanding",
+      "color": "#06b6d4"
+    },
+    "leadership": {
+      "name": "Leadership & Management",
+      "description": "People leadership and organizational skills",
+      "color": "#84cc16"
+    },
+    "influence": {
+      "name": "Communication & Influence",
+      "description": "External influence and thought leadership",
+      "color": "#ec4899"
+    }
+  }
+}
